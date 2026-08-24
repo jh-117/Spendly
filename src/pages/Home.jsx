@@ -37,9 +37,14 @@ export default function Home() {
   const yearMonth = toYearMonth(today);
   const prevYearMonth = getPreviousYearMonth(yearMonth);
 
+  const variableExpenses = useMemo(() => {
+    const excludedIds = new Set(categories.filter(c => c.excludeFromAvg).map(c => c.id));
+    return expenses.filter(e => !excludedIds.has(e.categoryId));
+  }, [expenses, categories]);
+
   const monthlyTotal = useMemo(() => getMonthlyTotal(expenses, yearMonth), [expenses, yearMonth]);
   const todayTotal = useMemo(() => getDailyTotal(expenses, todayStr), [expenses, todayStr]);
-  const avgDaily = useMemo(() => getCurrentMonthAverageDailySpending(expenses, yearMonth, today), [expenses, yearMonth]);
+  const avgDaily = useMemo(() => getCurrentMonthAverageDailySpending(variableExpenses, yearMonth, today), [variableExpenses, yearMonth]);
   const prevTotal = useMemo(() => getMonthlyTotal(expenses, prevYearMonth), [expenses, prevYearMonth]);
   const comparison = useMemo(() => getMonthComparison(monthlyTotal, prevTotal), [monthlyTotal, prevTotal]);
   const budgetRemaining = useMemo(() => getBudgetRemaining(monthlyTotal, budget?.amountInCents), [monthlyTotal, budget]);
@@ -132,6 +137,7 @@ export default function Home() {
             <div className="flex items-center gap-2 mb-3 text-[#64748B]">
               <span className="material-symbols-outlined text-[18px]">calendar_today</span>
               <h3 className="text-body-sm text-[#64748B] leading-tight">Daily Avg</h3>
+              <span className="text-[10px] bg-[#f3f3f3] px-1.5 py-0.5 rounded text-[#64748B] ml-auto">Variable</span>
             </div>
             <div className="text-headline-lg-mobile text-[#181d3a]">{formatCurrency(avgDaily)}</div>
           </div>

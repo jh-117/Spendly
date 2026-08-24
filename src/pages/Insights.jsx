@@ -58,19 +58,29 @@ export default function Insights() {
   const monthExpenses = useMemo(() => filterByMonth(expenses, yearMonth), [expenses, yearMonth]);
   const prevExpenses = useMemo(() => filterByMonth(expenses, prevYM), [expenses, prevYM]);
 
+  const variableMonthExpenses = useMemo(() => {
+    const excludedIds = new Set(categories.filter(c => c.excludeFromAvg).map(c => c.id));
+    return monthExpenses.filter(e => !excludedIds.has(e.categoryId));
+  }, [monthExpenses, categories]);
+
+  const fixedTotalThisMonth = useMemo(() => {
+    const excludedIds = new Set(categories.filter(c => c.excludeFromAvg).map(c => c.id));
+    return monthExpenses.filter(e => excludedIds.has(e.categoryId)).reduce((sum, e) => sum + e.amountInCents, 0);
+  }, [monthExpenses, categories]);
+
   const monthlyTotal = useMemo(() => getMonthlyTotal(expenses, yearMonth), [expenses, yearMonth]);
   const prevTotal = useMemo(() => getMonthlyTotal(expenses, prevYM), [expenses, prevYM]);
 
   const avgDaily = useMemo(() =>
     isCurrentMonth
-      ? getCurrentMonthAverageDailySpending(expenses, yearMonth, today)
-      : getCompletedMonthAverageDailySpending(expenses, yearMonth),
-    [expenses, yearMonth, isCurrentMonth]
+      ? getCurrentMonthAverageDailySpending(variableMonthExpenses, yearMonth, today)
+      : getCompletedMonthAverageDailySpending(variableMonthExpenses, yearMonth),
+    [variableMonthExpenses, yearMonth, isCurrentMonth]
   );
 
   const estimated = useMemo(() =>
-    isCurrentMonth ? getEstimatedMonthlySpending(avgDaily, yearMonth) : null,
-    [avgDaily, yearMonth, isCurrentMonth]
+    isCurrentMonth ? getEstimatedMonthlySpending(avgDaily, yearMonth, fixedTotalThisMonth) : null,
+    [avgDaily, yearMonth, isCurrentMonth, fixedTotalThisMonth]
   );
 
   const categoryTotals = useMemo(() => getCategoryTotals(monthExpenses), [monthExpenses]);

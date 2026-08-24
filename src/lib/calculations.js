@@ -141,10 +141,10 @@ export function getMonthComparison(currentMonthTotal, previousMonthTotal) {
 }
 
 /** Estimated end-of-month spend based on current daily average */
-export function getEstimatedMonthlySpending(averageDailySpendingCents, yearMonth) {
+export function getEstimatedMonthlySpending(averageDailySpendingCents, yearMonth, totalFixedCents = 0) {
   const [year, month] = yearMonth.split('-').map(Number);
   const totalDays = getDaysInMonth(new Date(year, month - 1));
-  return averageDailySpendingCents * totalDays;
+  return (averageDailySpendingCents * totalDays) + totalFixedCents;
 }
 
 /** Day with highest total spending → { date, total } or null */

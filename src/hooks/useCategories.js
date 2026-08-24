@@ -19,13 +19,14 @@ export function useCategories() {
     setCategories(updated);
   }, []);
 
-  const addCategory = useCallback(({ name, icon }) => {
+  const addCategory = useCallback(({ name, icon, excludeFromAvg = false }) => {
     const newCat = {
       id: uuidv4(),
       name: name.trim(),
       icon,
       isDefault: false,
       isActive: true,
+      excludeFromAvg,
       createdAt: new Date().toISOString(),
     };
     save([...categories, newCat]);

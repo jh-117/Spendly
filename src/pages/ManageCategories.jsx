@@ -25,15 +25,17 @@ export default function ManageCategories() {
   const [editingId, setEditingId] = useState(null);
   const [newName, setNewName] = useState('');
   const [newIcon, setNewIcon] = useState('📦');
+  const [newExclude, setNewExclude] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const activeCount = categories.filter(c => c.isActive).length;
 
   const handleAdd = () => {
     if (!newName.trim()) return;
-    addCategory({ name: newName.trim(), icon: newIcon });
+    addCategory({ name: newName.trim(), icon: newIcon, excludeFromAvg: newExclude });
     setNewName('');
     setNewIcon('📦');
+    setNewExclude(false);
     setShowAddForm(false);
     showToast('Category added ✓');
   };
@@ -42,11 +44,12 @@ export default function ManageCategories() {
     setEditingId(cat.id);
     setNewName(cat.name);
     setNewIcon(cat.icon);
+    setNewExclude(cat.excludeFromAvg || false);
   };
 
   const handleSaveEdit = (id) => {
     if (!newName.trim()) return;
-    updateCategory(id, { name: newName.trim(), icon: newIcon });
+    updateCategory(id, { name: newName.trim(), icon: newIcon, excludeFromAvg: newExclude });
     setEditingId(null);
     showToast('Category updated ✓');
   };
@@ -115,6 +118,21 @@ export default function ManageCategories() {
                       ))}
                     </div>
                   )}
+                  <div className="flex items-center justify-between bg-[#F8FAFC] p-3 rounded-xl border border-[#e2e2e2]">
+                    <span className="text-body-sm text-[#1a1c1c]">Exclude from Daily Avg</span>
+                    <button
+                      onClick={() => setNewExclude(!newExclude)}
+                      className={`relative w-10 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 ${
+                        newExclude ? 'bg-[#181d3a]' : 'bg-[#e2e2e2]'
+                      }`}
+                    >
+                      <span
+                        className={`absolute w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                          newExclude ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
                   <div className="flex gap-2">
                     <button onClick={() => setEditingId(null)}
                       className="flex-1 py-2 rounded-full border border-[#e2e2e2] text-body-sm text-[#46464d] hover:bg-[#f3f3f3] active:scale-95 transition-all">
@@ -200,6 +218,21 @@ export default function ManageCategories() {
                   ))}
                 </div>
               )}
+              <div className="flex items-center justify-between bg-[#F8FAFC] p-3 rounded-xl border border-[#e2e2e2]">
+                <span className="text-body-sm text-[#1a1c1c]">Exclude from Daily Avg</span>
+                <button
+                  onClick={() => setNewExclude(!newExclude)}
+                  className={`relative w-10 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 ${
+                    newExclude ? 'bg-[#181d3a]' : 'bg-[#e2e2e2]'
+                  }`}
+                >
+                  <span
+                    className={`absolute w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                      newExclude ? 'translate-x-5' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => { setShowAddForm(false); setNewName(''); setNewIcon('📦'); }}
