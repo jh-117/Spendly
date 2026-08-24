@@ -81,6 +81,21 @@ export function getBudgetPace(budgetAmountInCents, yearMonth, today) {
   return { expectedUsage, totalDays, currentDay, budgetAmountInCents };
 }
 
+export function getDaysRemaining(yearMonth, today) {
+  const [year, month] = yearMonth.split('-').map(Number);
+  const totalDays = getDaysInMonth(new Date(year, month - 1));
+  const currentDay = today.getDate();
+  return Math.max(0, totalDays - currentDay + 1); // +1 to include today
+}
+
+export function getSafeToSpend(budgetAmountInCents, monthlyTotalCents, yearMonth, today) {
+  if (!budgetAmountInCents) return null;
+  const remainingBudget = budgetAmountInCents - monthlyTotalCents;
+  const daysRemaining = getDaysRemaining(yearMonth, today);
+  if (daysRemaining <= 0) return 0;
+  return remainingBudget > 0 ? Math.floor(remainingBudget / daysRemaining) : 0;
+}
+
 /**
  * "below" | "near" | "above"
  * ±5% threshold around expected pace

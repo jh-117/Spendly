@@ -192,6 +192,11 @@ export default function Insights() {
                     <div>
                       <h3 className="text-headline-lg-mobile text-[#181d3a]">{PACE_LABELS[paceStatus].text}</h3>
                       <p className="text-body-sm text-[#64748B] mt-1">{PACE_LABELS[paceStatus].sub}</p>
+                      {fixedTotalThisMonth > 0 && (
+                        <p className="text-[11px] text-[#64748B] mt-2 pt-2 border-t border-[#f3f3f3]">
+                          Excluded categories contributed {formatCurrency(fixedTotalThisMonth)} to your total spending.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
