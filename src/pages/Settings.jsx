@@ -114,6 +114,39 @@ export default function Settings() {
             </div>
             {budgetError && <p className="text-[#ba1a1a] text-body-sm">{budgetError}</p>}
           </div>
+
+          {/* Salary & Billing Cycle */}
+          <div className="flex flex-col gap-3 pt-4 border-t border-[#f3f3f3]">
+            <div className="flex justify-between items-center gap-4">
+              <div>
+                <label className="text-body-md text-[#1a1c1c] font-medium block">Salary / Cycle Start Day</label>
+                <span className="text-body-sm text-[#64748B] block mt-0.5">
+                  {settings.cycleStartDay === 1
+                    ? 'Tracks by standard calendar month (1st – End)'
+                    : `Tracks from ${settings.cycleStartDay}th to ${settings.cycleStartDay - 1}th of following month`}
+                </span>
+              </div>
+              <select
+                value={settings.cycleStartDay ?? 25}
+                onChange={e => {
+                  const val = parseInt(e.target.value, 10);
+                  updateSettings({ cycleStartDay: val });
+                  showToast(`Cycle updated to day ${val} ✓`);
+                }}
+                className="bg-[#f3f3f3] border-none rounded-xl text-body-md font-semibold text-[#181d3a] px-3.5 py-2.5 focus:ring-1 focus:ring-[#181d3a] outline-none cursor-pointer flex-shrink-0"
+              >
+                <option value={1}>1st (Calendar Month)</option>
+                {Array.from({ length: 27 }, (_, i) => i + 2).map(day => (
+                  <option key={day} value={day}>
+                    {day}th {day === 25 ? '★ (Salary Day)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="text-[12px] text-[#64748B] bg-[#f8fafc] p-3 rounded-xl border border-[#e2e2e2] leading-relaxed">
+              💡 <strong>Accurate Safe-to-Spend:</strong> When your salary arrives on the 25th, your budget and daily pace will automatically calculate until your next payday instead of the calendar month end.
+            </p>
+          </div>
         </section>
 
         {/* Notifications */}

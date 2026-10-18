@@ -1,6 +1,4 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
-import { format } from 'date-fns';
 import Home from './pages/Home';
 import AddExpense from './pages/AddExpense';
 import History from './pages/History';
@@ -8,9 +6,6 @@ import Insights from './pages/Insights';
 import Settings from './pages/Settings';
 import ManageCategories from './pages/ManageCategories';
 import BottomNav from './components/layout/BottomNav';
-import { useExpenses } from './hooks/useExpenses';
-import { useSettings } from './hooks/useSettings';
-import { hasRecordedToday } from './lib/calculations';
 
 // Hide bottom nav on /add and /categories
 function AppShell() {

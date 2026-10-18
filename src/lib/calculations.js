@@ -1,4 +1,14 @@
-import { getDaysInMonth, format, parseISO, isValid } from 'date-fns';
+import {
+  getDaysInMonth,
+  format,
+  parseISO,
+  isValid,
+  addDays,
+  subDays,
+  addMonths,
+  subMonths,
+  differenceInCalendarDays,
+} from 'date-fns';
 import { CURRENCY_SYMBOL } from './constants';
 
 // ─── Formatting ────────────────────────────────────────────────────────────
@@ -28,6 +38,123 @@ export function filterByMonth(expenses, yearMonth) {
 /** Filter expenses to a specific "YYYY-MM-DD" date */
 export function filterByDate(expenses, dateStr) {
   return expenses.filter(e => e.expenseDate === dateStr);
+}
+
+/** Filter expenses within an inclusive date range [startDate, endDate] (YYYY-MM-DD) */
+export function filterByDateRange(expenses, startDate, endDate) {
+  return expenses.filter(e => e.expenseDate >= startDate && e.expenseDate <= endDate);
+}
+
+// ─── Billing / Salary Cycle calculations ─────────────────────────────────────
+
+/**
+ * Returns billing cycle descriptor for a given date and cycle start day.
+ * When cycleStartDay === 1, aligns with standard calendar month.
+ * When cycleStartDay > 1 (e.g. 25): runs from 25th of month to 24th of next month.
+ */
+export function getBillingCycle(dateInput = new Date(), cycleStartDay = 25) {
+  const d = typeof dateInput === 'string' ? parseISO(dateInput) : new Date(dateInput);
+  const currentDay = d.getDate();
+  const year = d.getFullYear();
+  const month = d.getMonth();
+
+  let startDate;
+  let endDate;
+
+  if (cycleStartDay === 1) {
+    startDate = new Date(year, month, 1);
+    const totalDays = getDaysInMonth(startDate);
+    endDate = new Date(year, month, totalDays);
+  } else {
+    if (currentDay >= cycleStartDay) {
+      // Cycle started in current calendar month
+      startDate = new Date(year, month, cycleStartDay);
+      const nextMonth = addMonths(startDate, 1);
+      const daysInNextMonth = getDaysInMonth(nextMonth);
+      const endDay = Math.min(cycleStartDay - 1, daysInNextMonth);
+      endDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), endDay);
+    } else {
+      // Cycle started in previous calendar month
+      const prevMonth = subMonths(d, 1);
+      const daysInPrevMonth = getDaysInMonth(prevMonth);
+      const startDay = Math.min(cycleStartDay, daysInPrevMonth);
+      startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), startDay);
+      const daysInThisMonth = getDaysInMonth(d);
+      const endDay = Math.min(cycleStartDay - 1, daysInThisMonth);
+      endDate = new Date(year, month, endDay);
+    }
+  }
+
+  const startStr = format(startDate, 'yyyy-MM-dd');
+  const endStr = format(endDate, 'yyyy-MM-dd');
+  const now = new Date();
+  const totalDays = differenceInCalendarDays(endDate, startDate) + 1;
+  const isCurrentCycle = now >= startDate && now <= endDate;
+  const daysPassed = isCurrentCycle
+    ? Math.max(1, Math.min(totalDays, differenceInCalendarDays(now, startDate) + 1))
+    : totalDays;
+  const daysRemaining = isCurrentCycle
+    ? Math.max(0, differenceInCalendarDays(endDate, now) + 1)
+    : 0;
+
+  return {
+    startDate: startStr,
+    endDate: endStr,
+    cycleStartDay,
+    label: `${format(startDate, 'd MMM')} – ${format(endDate, 'd MMM yyyy')}`,
+    shortLabel: `${format(startDate, 'd MMM')} – ${format(endDate, 'd MMM')}`,
+    totalDays,
+    daysPassed,
+    daysRemaining,
+    isCurrentCycle,
+    nextPayday: format(addDays(endDate, 1), 'd MMM'),
+    nextPaydayDate: format(addDays(endDate, 1), 'yyyy-MM-dd'),
+  };
+}
+
+/** Get previous billing cycle */
+export function getPreviousCycle(cycle, cycleStartDay = 25) {
+  const prevDate = subDays(parseISO(cycle.startDate), 1);
+  return getBillingCycle(prevDate, cycleStartDay);
+}
+
+/** Get next billing cycle */
+export function getNextCycle(cycle, cycleStartDay = 25) {
+  const nextDate = addDays(parseISO(cycle.endDate), 1);
+  return getBillingCycle(nextDate, cycleStartDay);
+}
+
+/** Sum amountInCents for a cycle range */
+export function getCycleTotal(expenses, startDate, endDate) {
+  return filterByDateRange(expenses, startDate, endDate)
+    .reduce((sum, e) => sum + e.amountInCents, 0);
+}
+
+/** Average daily spending in a cycle */
+export function getCycleAverageDailySpending(expenses, cycle, isCurrentCycle = true) {
+  const total = getCycleTotal(expenses, cycle.startDate, cycle.endDate);
+  const divisor = isCurrentCycle ? cycle.daysPassed : cycle.totalDays;
+  return divisor > 0 ? Math.round(total / divisor) : 0;
+}
+
+/** Safe to spend per remaining day in cycle */
+export function getCycleSafeToSpend(budgetAmountInCents, cycleTotalCents, cycle) {
+  if (!budgetAmountInCents) return null;
+  const remainingBudget = budgetAmountInCents - cycleTotalCents;
+  if (cycle.daysRemaining <= 0) return 0;
+  return remainingBudget > 0 ? Math.floor(remainingBudget / cycle.daysRemaining) : 0;
+}
+
+/** Budget pace for a cycle */
+export function getCycleBudgetPace(budgetAmountInCents, cycle) {
+  if (!budgetAmountInCents) return null;
+  const expectedUsage = Math.round((budgetAmountInCents * cycle.daysPassed) / cycle.totalDays);
+  return { expectedUsage, totalDays: cycle.totalDays, currentDay: cycle.daysPassed, budgetAmountInCents };
+}
+
+/** Estimated total spending at current cycle pace */
+export function getEstimatedCycleSpending(averageDailySpendingCents, cycle, totalFixedCents = 0) {
+  return (averageDailySpendingCents * cycle.totalDays) + totalFixedCents;
 }
 
 // ─── Core calculations ──────────────────────────────────────────────────────

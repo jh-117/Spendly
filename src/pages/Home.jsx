@@ -6,23 +6,20 @@ import { useBudget } from '../hooks/useBudget';
 import { useSettings } from '../hooks/useSettings';
 import { useCategories } from '../hooks/useCategories';
 import {
-  getMonthlyTotal,
   getDailyTotal,
-  getCurrentMonthAverageDailySpending,
   getBudgetRemaining,
   getBudgetUsedPercentage,
   getMonthComparison,
-  getPreviousYearMonth,
   formatCurrency,
-  toYearMonth,
-  getBudgetPace,
   getSpendingPaceStatus,
-  getSafeToSpend,
-  getDaysRemaining
+  getBillingCycle,
+  getPreviousCycle,
+  filterByDateRange,
+  getCycleAverageDailySpending,
+  getCycleSafeToSpend,
+  getCycleBudgetPace,
 } from '../lib/calculations';
-import { CURRENCY_SYMBOL } from '../lib/constants';
 import ExpenseListItem from '../components/expense/ExpenseListItem';
-import EmptyState from '../components/ui/EmptyState';
 
 function Home() {
   const navigate = useNavigate();
@@ -31,47 +28,95 @@ function Home() {
   const { settings } = useSettings();
   const { categories } = useCategories();
 
-  const [greeting, setGreeting] = useState('');
   const [today, setToday] = useState(() => new Date());
 
   useEffect(() => {
-    // Basic time-based greeting
-    const hour = today.getHours();
-    if (hour < 12) setGreeting('Good Morning');
-    else if (hour < 18) setGreeting('Good Afternoon');
-    else setGreeting('Good Evening');
-
-    // Update today just once on mount
-    const interval = setInterval(() => setToday(new Date()), 60000 * 60); // Check every hour
+    // Update today periodically
+    const interval = setInterval(() => setToday(new Date()), 60000 * 60);
     return () => clearInterval(interval);
+  }, []);
+
+  const greeting = useMemo(() => {
+    const hour = today.getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
   }, [today]);
 
-  const todayStr = format(today, 'yyyy-MM-dd');
-  const yearMonth = toYearMonth(today);
-  const prevYearMonth = getPreviousYearMonth(yearMonth);
+  const cycleStartDay = settings.cycleStartDay ?? 25;
+  const isCalendar = cycleStartDay === 1;
+
+  const currentCycle = useMemo(() => getBillingCycle(today, cycleStartDay), [today, cycleStartDay]);
+  const prevCycle = useMemo(() => getPreviousCycle(currentCycle, cycleStartDay), [currentCycle, cycleStartDay]);
+
+  const cycleExpenses = useMemo(() =>
+    filterByDateRange(expenses, currentCycle.startDate, currentCycle.endDate),
+    [expenses, currentCycle]
+  );
+
+  const prevCycleExpenses = useMemo(() =>
+    filterByDateRange(expenses, prevCycle.startDate, prevCycle.endDate),
+    [expenses, prevCycle]
+  );
 
   const variableExpenses = useMemo(() => {
     const excludedIds = new Set(categories.filter(c => c.excludeFromAvg).map(c => c.id));
-    return expenses.filter(e => !excludedIds.has(e.categoryId));
-  }, [expenses, categories]);
+    return cycleExpenses.filter(e => !excludedIds.has(e.categoryId));
+  }, [cycleExpenses, categories]);
 
-  const monthlyTotal = useMemo(() => getMonthlyTotal(expenses, yearMonth), [expenses, yearMonth]);
+  const cycleTotal = useMemo(() =>
+    cycleExpenses.reduce((sum, e) => sum + e.amountInCents, 0),
+    [cycleExpenses]
+  );
+
+  const prevTotal = useMemo(() =>
+    prevCycleExpenses.reduce((sum, e) => sum + e.amountInCents, 0),
+    [prevCycleExpenses]
+  );
+
+  const todayStr = format(today, 'yyyy-MM-dd');
   const todayTotal = useMemo(() => getDailyTotal(expenses, todayStr), [expenses, todayStr]);
-  const avgDaily = useMemo(() => getCurrentMonthAverageDailySpending(variableExpenses, yearMonth, today), [variableExpenses, yearMonth]);
-  const prevTotal = useMemo(() => getMonthlyTotal(expenses, prevYearMonth), [expenses, prevYearMonth]);
-  const comparison = useMemo(() => getMonthComparison(monthlyTotal, prevTotal), [monthlyTotal, prevTotal]);
-  const budgetRemaining = useMemo(() => getBudgetRemaining(monthlyTotal, budget?.amountInCents), [monthlyTotal, budget]);
-  const budgetPct = useMemo(() => getBudgetUsedPercentage(monthlyTotal, budget?.amountInCents), [monthlyTotal, budget]);
 
-  const daysRemaining = useMemo(() => getDaysRemaining(yearMonth, today), [yearMonth, today]);
-  const safeToSpend = useMemo(() => getSafeToSpend(budget?.amountInCents, monthlyTotal, yearMonth, today), [budget, monthlyTotal, yearMonth, today]);
-  const pace = useMemo(() => getBudgetPace(budget?.amountInCents, yearMonth, today), [budget, yearMonth, today]);
-  const paceStatus = useMemo(() => pace ? getSpendingPaceStatus(monthlyTotal, pace.expectedUsage) : null, [monthlyTotal, pace]);
+  const avgDaily = useMemo(() =>
+    getCycleAverageDailySpending(variableExpenses, currentCycle, true),
+    [variableExpenses, currentCycle]
+  );
+
+  const comparison = useMemo(() =>
+    getMonthComparison(cycleTotal, prevTotal),
+    [cycleTotal, prevTotal]
+  );
+
+  const budgetRemaining = useMemo(() =>
+    getBudgetRemaining(cycleTotal, budget?.amountInCents),
+    [cycleTotal, budget]
+  );
+
+  const budgetPct = useMemo(() =>
+    getBudgetUsedPercentage(cycleTotal, budget?.amountInCents),
+    [cycleTotal, budget]
+  );
+
+  const daysRemaining = currentCycle.daysRemaining;
+  const safeToSpend = useMemo(() =>
+    getCycleSafeToSpend(budget?.amountInCents, cycleTotal, currentCycle),
+    [budget, cycleTotal, currentCycle]
+  );
+
+  const pace = useMemo(() =>
+    getCycleBudgetPace(budget?.amountInCents, currentCycle),
+    [budget, currentCycle]
+  );
+
+  const paceStatus = useMemo(() =>
+    pace ? getSpendingPaceStatus(cycleTotal, pace.expectedUsage) : null,
+    [cycleTotal, pace]
+  );
 
   const PACE_TEXT = {
     below: "You're spending slower than your typical pace.",
-    near: "You're exactly on track for this point in the month.",
-    above: "You've used more than your typical pace for this point in the month."
+    near: "You're exactly on track for this point in the cycle.",
+    above: "You've used more than your typical pace for this point in the cycle."
   };
 
   const catMap = useMemo(() => {
@@ -114,11 +159,21 @@ function Home() {
 
         {/* Bento Stats */}
         <section className="grid grid-cols-2 gap-4">
-          {/* This Month — full width */}
+          {/* This Cycle / This Month — full width */}
           <div className="col-span-2 bg-white rounded-[24px] p-6 border border-[#e2e2e2] shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#181d3a]/5 rounded-full blur-2xl pointer-events-none" />
-            <h3 className="text-body-sm text-[#64748B] mb-2">This Month</h3>
-            {monthlyTotal === 0 ? (
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-body-sm text-[#64748B] font-medium">
+                {isCalendar ? 'This Month' : 'Current Pay Cycle'}
+              </h3>
+              {!isCalendar && (
+                <span className="text-[11px] font-semibold bg-[#dee1ff]/70 text-[#181d3a] px-2.5 py-0.5 rounded-full">
+                  {currentCycle.shortLabel}
+                </span>
+              )}
+            </div>
+
+            {cycleTotal === 0 ? (
               <div className="flex flex-col gap-3">
                 <div className="text-display-hero text-[#181d3a] tracking-tight">
                   RM <span className="text-[#dadada]">0.00</span>
@@ -134,9 +189,9 @@ function Home() {
               <>
                 <div className="text-display-hero text-[#181d3a] tracking-tight">
                   RM{' '}
-                  <span>{Math.floor(monthlyTotal / 100).toLocaleString('en-MY')}</span>
+                  <span>{Math.floor(cycleTotal / 100).toLocaleString('en-MY')}</span>
                   <span className="text-2xl text-[#64748B]/80">
-                    .{String(monthlyTotal % 100).padStart(2, '0')}
+                    .{String(cycleTotal % 100).padStart(2, '0')}
                   </span>
                 </div>
                 {comparison.direction !== 'no-data' && (
@@ -147,7 +202,7 @@ function Home() {
                       </span>
                       <span className="text-label-caps text-[#64748B] normal-case">
                         {comparison.direction === 'up' ? '+' : '-'}
-                        {comparison.changePercent?.toFixed(0)}% vs last month
+                        {comparison.changePercent?.toFixed(0)}% vs last {isCalendar ? 'month' : 'cycle'}
                       </span>
                     </div>
                   </div>
@@ -166,8 +221,11 @@ function Home() {
                 </div>
                 <div className="text-headline-lg-mobile text-[#181d3a]">{formatCurrency(safeToSpend)}<span className="text-body-sm text-[#64748B] font-normal">/day</span></div>
               </div>
-              <div className="text-[11px] text-[#64748B] mt-3 pt-3 border-t border-[#f3f3f3]">
-                Based on {daysRemaining} days left
+              <div className="text-[11px] text-[#64748B] mt-3 pt-3 border-t border-[#f3f3f3] flex items-center justify-between">
+                <span>{daysRemaining} days left</span>
+                {!isCalendar && (
+                  <span className="text-[#181d3a] font-medium">Payday: {currentCycle.nextPayday}</span>
+                )}
               </div>
             </div>
           ) : (

@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   currency: 'MYR',
   reminderEnabled: false,
   reminderTime: '21:00',
+  cycleStartDay: 25,
 };
 
 export const DEFAULT_BUDGET = {

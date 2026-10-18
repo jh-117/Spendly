@@ -3,9 +3,10 @@ import { storage } from '../lib/storage';
 import { DEFAULT_SETTINGS } from '../lib/constants';
 
 export function useSettings() {
-  const [settings, setSettingsState] = useState(() =>
-    storage.get('settings', DEFAULT_SETTINGS)
-  );
+  const [settings, setSettingsState] = useState(() => {
+    const saved = storage.get('settings', {});
+    return { ...DEFAULT_SETTINGS, ...saved };
+  });
 
   const updateSettings = useCallback((changes) => {
     const updated = { ...settings, ...changes };
