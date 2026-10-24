@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBudget } from '../hooks/useBudget';
 import { useSettings } from '../hooks/useSettings';
@@ -30,6 +30,12 @@ export default function Settings() {
   const [budgetInput, setBudgetInput] = useState(
     budget?.amountInCents ? fromCents(budget.amountInCents) : ''
   );
+
+  useEffect(() => {
+    if (budget?.amountInCents != null) {
+      setBudgetInput(fromCents(budget.amountInCents));
+    }
+  }, [budget?.amountInCents]);
   const [budgetError, setBudgetError] = useState('');
   const [showClearDialog, setShowClearDialog] = useState(false);
 

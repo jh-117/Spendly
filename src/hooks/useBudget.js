@@ -5,29 +5,61 @@ import { toCents } from '../lib/calculations';
 
 export function useBudget() {
   const [budget, setBudgetState] = useState(DEFAULT_BUDGET);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch budget from Supabase on mount
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from('budget')
-        .select('*')
-        .eq('id', 1)
-        .single();
-      if (!cancelled) {
-        if (error) {
-          console.error('Failed to load budget:', error);
-        } else if (data) {
-          setBudgetState({
-            amountInCents: data.amount_in_cents ? Number(data.amount_in_cents) : null,
-            updatedAt: data.updated_at,
-          });
-        }
-      }
-    })();
-    return () => { cancelled = true; };
+  const fetchBudget = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('budget')
+      .select('*')
+      .eq('id', 1)
+      .single();
+    if (error) {
+      console.error('Failed to load budget:', error);
+    } else if (data) {
+      setBudgetState({
+        amountInCents: data.amount_in_cents ? Number(data.amount_in_cents) : null,
+        updatedAt: data.updated_at,
+      });
+    }
+    setLoading(false);
   }, []);
+
+  // Fetch on mount, listen to realtime changes & window focus/visibility
+  useEffect(() => {
+    fetchBudget();
+
+    // Supabase Realtime subscription for cross-device sync
+    const channel = supabase
+      .channel('realtime_budget')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'budget' },
+        (payload) => {
+          if (payload.new) {
+            setBudgetState({
+              amountInCents: payload.new.amount_in_cents ? Number(payload.new.amount_in_cents) : null,
+              updatedAt: payload.new.updated_at,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchBudget();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', fetchBudget);
+
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', fetchBudget);
+    };
+  }, [fetchBudget]);
 
   const setBudget = useCallback(async (amountStr) => {
     const cents = typeof amountStr === 'number'
@@ -71,5 +103,5 @@ export function useBudget() {
     setBudgetState(cleared);
   }, []);
 
-  return { budget, setBudget, clearBudget };
+  return { budget, loading, setBudget, clearBudget, refreshBudget: fetchBudget };
 }

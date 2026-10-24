@@ -20,25 +20,49 @@ export function useExpenses() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all expenses from Supabase on mount
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('*')
-        .order('expense_date', { ascending: false });
-      if (!cancelled) {
-        if (error) {
-          console.error('Failed to load expenses:', error);
-        } else {
-          setExpenses((data || []).map(fromRow));
-        }
-        setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+  const fetchExpenses = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .order('expense_date', { ascending: false });
+    if (error) {
+      console.error('Failed to load expenses:', error);
+    } else {
+      setExpenses((data || []).map(fromRow));
+    }
+    setLoading(false);
   }, []);
+
+  // Fetch all expenses from Supabase on mount and listen to realtime changes
+  useEffect(() => {
+    fetchExpenses();
+
+    const channel = supabase
+      .channel('realtime_expenses')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'expenses' },
+        () => {
+          fetchExpenses();
+        }
+      )
+      .subscribe();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchExpenses();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', fetchExpenses);
+
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', fetchExpenses);
+    };
+  }, [fetchExpenses]);
 
   const addExpense = useCallback(async ({ amountInCents, categoryId, description, paymentMethod, expenseDate }) => {
     const now = new Date().toISOString();
