@@ -50,6 +50,7 @@ export default function Insights() {
   const { settings } = useSettings();
 
   const cycleStartDay = settings.cycleStartDay ?? 25;
+  const adjustWeekend = settings.adjustWeekendPayday !== false;
   const isCalendarOnly = cycleStartDay === 1;
 
   // View mode: 'cycle' or 'month'
@@ -61,8 +62,8 @@ export default function Insights() {
   const [yearMonth, setYearMonth] = useState(currentYM);
 
   // Cycle navigation
-  const currentCycle = useMemo(() => getBillingCycle(today, cycleStartDay), [today, cycleStartDay]);
-  const [activeCycle, setActiveCycle] = useState(() => getBillingCycle(today, cycleStartDay));
+  const currentCycle = useMemo(() => getBillingCycle(today, cycleStartDay, adjustWeekend), [today, cycleStartDay, adjustWeekend]);
+  const [activeCycle, setActiveCycle] = useState(() => getBillingCycle(today, cycleStartDay, adjustWeekend));
 
   const isCurrentPeriod = viewMode === 'cycle'
     ? activeCycle.isCurrentCycle
@@ -76,7 +77,7 @@ export default function Insights() {
 
   const handlePrev = () => {
     if (viewMode === 'cycle') {
-      setActiveCycle(prev => getPreviousCycle(prev, cycleStartDay));
+      setActiveCycle(prev => getPreviousCycle(prev, cycleStartDay, adjustWeekend));
     } else {
       setYearMonth(prev => getPreviousYearMonth(prev));
     }
@@ -85,7 +86,7 @@ export default function Insights() {
   const handleNext = () => {
     if (!canGoNext) return;
     if (viewMode === 'cycle') {
-      setActiveCycle(prev => getNextCycle(prev, cycleStartDay));
+      setActiveCycle(prev => getNextCycle(prev, cycleStartDay, adjustWeekend));
     } else {
       setYearMonth(prev => getNextYearMonth(prev));
     }
@@ -108,10 +109,10 @@ export default function Insights() {
   // Previous period expenses
   const prevPeriod = useMemo(() => {
     if (viewMode === 'cycle') {
-      return getPreviousCycle(activeCycle, cycleStartDay);
+      return getPreviousCycle(activeCycle, cycleStartDay, adjustWeekend);
     }
     return prevYM;
-  }, [viewMode, activeCycle, cycleStartDay, prevYM]);
+  }, [viewMode, activeCycle, cycleStartDay, adjustWeekend, prevYM]);
 
   const prevPeriodExpenses = useMemo(() => {
     if (viewMode === 'cycle') {

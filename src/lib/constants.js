@@ -13,6 +13,7 @@ export const DEFAULT_SETTINGS = {
   reminderEnabled: false,
   reminderTime: '21:00',
   cycleStartDay: 25,
+  adjustWeekendPayday: true,
 };
 
 export const DEFAULT_BUDGET = {

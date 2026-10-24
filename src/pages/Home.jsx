@@ -51,10 +51,11 @@ function Home() {
   }, [today]);
 
   const cycleStartDay = settings.cycleStartDay ?? 25;
+  const adjustWeekend = settings.adjustWeekendPayday !== false;
   const isCalendar = cycleStartDay === 1;
 
-  const currentCycle = useMemo(() => getBillingCycle(today, cycleStartDay), [today, cycleStartDay]);
-  const prevCycle = useMemo(() => getPreviousCycle(currentCycle, cycleStartDay), [currentCycle, cycleStartDay]);
+  const currentCycle = useMemo(() => getBillingCycle(today, cycleStartDay, adjustWeekend), [today, cycleStartDay, adjustWeekend]);
+  const prevCycle = useMemo(() => getPreviousCycle(currentCycle, cycleStartDay, adjustWeekend), [currentCycle, cycleStartDay, adjustWeekend]);
 
   const cycleExpenses = useMemo(() =>
     filterByDateRange(expenses, currentCycle.startDate, currentCycle.endDate),

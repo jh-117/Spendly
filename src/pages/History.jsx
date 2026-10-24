@@ -38,6 +38,7 @@ export default function History() {
   const { toast, showToast } = useToast();
 
   const cycleStartDay = settings.cycleStartDay ?? 25;
+  const adjustWeekend = settings.adjustWeekendPayday !== false;
   const isCalendarOnly = cycleStartDay === 1;
 
   // View mode: 'cycle' or 'month'
@@ -48,8 +49,8 @@ export default function History() {
   const [yearMonth, setYearMonth] = useState(currentYM);
 
   // Cycle navigation
-  const currentCycle = useMemo(() => getBillingCycle(new Date(), cycleStartDay), [cycleStartDay]);
-  const [activeCycle, setActiveCycle] = useState(() => getBillingCycle(new Date(), cycleStartDay));
+  const currentCycle = useMemo(() => getBillingCycle(new Date(), cycleStartDay, adjustWeekend), [cycleStartDay, adjustWeekend]);
+  const [activeCycle, setActiveCycle] = useState(() => getBillingCycle(new Date(), cycleStartDay, adjustWeekend));
 
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,7 +122,7 @@ export default function History() {
 
   const handlePrev = () => {
     if (viewMode === 'cycle') {
-      setActiveCycle(prev => getPreviousCycle(prev, cycleStartDay));
+      setActiveCycle(prev => getPreviousCycle(prev, cycleStartDay, adjustWeekend));
     } else {
       setYearMonth(prev => getPreviousYearMonth(prev));
     }
@@ -130,7 +131,7 @@ export default function History() {
   const handleNext = () => {
     if (!canGoNext) return;
     if (viewMode === 'cycle') {
-      setActiveCycle(prev => getNextCycle(prev, cycleStartDay));
+      setActiveCycle(prev => getNextCycle(prev, cycleStartDay, adjustWeekend));
     } else {
       setYearMonth(prev => getNextYearMonth(prev));
     }

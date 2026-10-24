@@ -48,13 +48,37 @@ export function filterByDateRange(expenses, startDate, endDate) {
 // ─── Billing / Salary Cycle calculations ─────────────────────────────────────
 
 /**
+ * Calculates the actual payday date for a given year and month.
+ * If targetDay > 1 and adjustForWeekend is true:
+ * - Saturday (6) -> shift back 1 day to Friday
+ * - Sunday (0) -> shift back 2 days to Friday
+ */
+export function getAdjustedPayday(year, month, targetDay = 25, adjustForWeekend = true) {
+  const daysInMonth = getDaysInMonth(new Date(year, month, 1));
+  const validDay = Math.min(targetDay, daysInMonth);
+  const date = new Date(year, month, validDay);
+
+  if (!adjustForWeekend || targetDay === 1) {
+    return date;
+  }
+
+  const dayOfWeek = date.getDay(); // 0 = Sun, 6 = Sat
+  if (dayOfWeek === 0) {
+    return subDays(date, 2); // Sunday -> Friday
+  } else if (dayOfWeek === 6) {
+    return subDays(date, 1); // Saturday -> Friday
+  }
+  return date;
+}
+
+/**
  * Returns billing cycle descriptor for a given date and cycle start day.
  * When cycleStartDay === 1, aligns with standard calendar month.
- * When cycleStartDay > 1 (e.g. 25): runs from 25th of month to 24th of next month.
+ * When cycleStartDay > 1 (e.g. 25): runs from payday of month to the day before next payday.
+ * If adjustWeekend is true and payday falls on Sat/Sun, shifts to previous Friday.
  */
-export function getBillingCycle(dateInput = new Date(), cycleStartDay = 25) {
+export function getBillingCycle(dateInput = new Date(), cycleStartDay = 25, adjustWeekend = true) {
   const d = typeof dateInput === 'string' ? parseISO(dateInput) : new Date(dateInput);
-  const currentDay = d.getDate();
   const year = d.getFullYear();
   const month = d.getMonth();
 
@@ -66,22 +90,33 @@ export function getBillingCycle(dateInput = new Date(), cycleStartDay = 25) {
     const totalDays = getDaysInMonth(startDate);
     endDate = new Date(year, month, totalDays);
   } else {
-    if (currentDay >= cycleStartDay) {
-      // Cycle started in current calendar month
-      startDate = new Date(year, month, cycleStartDay);
-      const nextMonth = addMonths(startDate, 1);
-      const daysInNextMonth = getDaysInMonth(nextMonth);
-      const endDay = Math.min(cycleStartDay - 1, daysInNextMonth);
-      endDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), endDay);
+    // Current month's adjusted payday
+    const thisMonthPayday = getAdjustedPayday(year, month, cycleStartDay, adjustWeekend);
+    const dStr = format(d, 'yyyy-MM-dd');
+    const thisPaydayStr = format(thisMonthPayday, 'yyyy-MM-dd');
+
+    if (dStr >= thisPaydayStr) {
+      // Cycle started in current calendar month on adjusted payday
+      startDate = thisMonthPayday;
+      const nextMonth = addMonths(new Date(year, month, 1), 1);
+      const nextMonthPayday = getAdjustedPayday(
+        nextMonth.getFullYear(),
+        nextMonth.getMonth(),
+        cycleStartDay,
+        adjustWeekend
+      );
+      endDate = subDays(nextMonthPayday, 1);
     } else {
-      // Cycle started in previous calendar month
-      const prevMonth = subMonths(d, 1);
-      const daysInPrevMonth = getDaysInMonth(prevMonth);
-      const startDay = Math.min(cycleStartDay, daysInPrevMonth);
-      startDate = new Date(prevMonth.getFullYear(), prevMonth.getMonth(), startDay);
-      const daysInThisMonth = getDaysInMonth(d);
-      const endDay = Math.min(cycleStartDay - 1, daysInThisMonth);
-      endDate = new Date(year, month, endDay);
+      // Cycle started in previous calendar month on adjusted payday
+      const prevMonth = subMonths(new Date(year, month, 1), 1);
+      const prevMonthPayday = getAdjustedPayday(
+        prevMonth.getFullYear(),
+        prevMonth.getMonth(),
+        cycleStartDay,
+        adjustWeekend
+      );
+      startDate = prevMonthPayday;
+      endDate = subDays(thisMonthPayday, 1);
     }
   }
 
@@ -101,6 +136,7 @@ export function getBillingCycle(dateInput = new Date(), cycleStartDay = 25) {
     startDate: startStr,
     endDate: endStr,
     cycleStartDay,
+    adjustWeekend,
     label: `${format(startDate, 'd MMM')} – ${format(endDate, 'd MMM yyyy')}`,
     shortLabel: `${format(startDate, 'd MMM')} – ${format(endDate, 'd MMM')}`,
     totalDays,
@@ -113,15 +149,15 @@ export function getBillingCycle(dateInput = new Date(), cycleStartDay = 25) {
 }
 
 /** Get previous billing cycle */
-export function getPreviousCycle(cycle, cycleStartDay = 25) {
+export function getPreviousCycle(cycle, cycleStartDay = 25, adjustWeekend = true) {
   const prevDate = subDays(parseISO(cycle.startDate), 1);
-  return getBillingCycle(prevDate, cycleStartDay);
+  return getBillingCycle(prevDate, cycleStartDay, adjustWeekend);
 }
 
 /** Get next billing cycle */
-export function getNextCycle(cycle, cycleStartDay = 25) {
+export function getNextCycle(cycle, cycleStartDay = 25, adjustWeekend = true) {
   const nextDate = addDays(parseISO(cycle.endDate), 1);
-  return getBillingCycle(nextDate, cycleStartDay);
+  return getBillingCycle(nextDate, cycleStartDay, adjustWeekend);
 }
 
 /** Sum amountInCents for a cycle range */

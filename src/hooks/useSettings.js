@@ -24,6 +24,7 @@ export function useSettings() {
             reminderEnabled: data.reminder_enabled ?? DEFAULT_SETTINGS.reminderEnabled,
             reminderTime: data.reminder_time || DEFAULT_SETTINGS.reminderTime,
             cycleStartDay: data.cycle_start_day ?? DEFAULT_SETTINGS.cycleStartDay,
+            adjustWeekendPayday: data.adjust_weekend_payday ?? DEFAULT_SETTINGS.adjustWeekendPayday,
           });
         }
       }
@@ -40,6 +41,7 @@ export function useSettings() {
     if (changes.reminderEnabled !== undefined) dbUpdates.reminder_enabled = changes.reminderEnabled;
     if (changes.reminderTime !== undefined) dbUpdates.reminder_time = changes.reminderTime;
     if (changes.cycleStartDay !== undefined) dbUpdates.cycle_start_day = changes.cycleStartDay;
+    if (changes.adjustWeekendPayday !== undefined) dbUpdates.adjust_weekend_payday = changes.adjustWeekendPayday;
 
     const { error } = await supabase
       .from('settings')

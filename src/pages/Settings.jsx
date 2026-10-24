@@ -187,6 +187,36 @@ export default function Settings() {
                 ))}
               </select>
             </div>
+
+            {settings.cycleStartDay !== 1 && (
+              <div className="flex justify-between items-center bg-[#f8fafc] p-3 rounded-xl border border-[#e2e2e2]">
+                <div>
+                  <span className="text-body-sm text-[#1a1c1c] font-medium block">
+                    Weekend Payday Adjustment
+                  </span>
+                  <span className="text-[11px] text-[#64748B] block mt-0.5">
+                    If {settings.cycleStartDay ?? 25}th falls on Sat/Sun, shift cycle start to Friday (e.g. 23 Oct)
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    const newVal = settings.adjustWeekendPayday === false ? true : false;
+                    updateSettings({ adjustWeekendPayday: newVal });
+                    showToast(newVal ? 'Weekend adjustment enabled ✓' : 'Weekend adjustment disabled');
+                  }}
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 ${
+                    settings.adjustWeekendPayday !== false ? 'bg-[#181d3a]' : 'bg-[#e2e2e2]'
+                  }`}
+                >
+                  <span
+                    className={`absolute w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                      settings.adjustWeekendPayday !== false ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+
             <p className="text-[12px] text-[#64748B] bg-[#f8fafc] p-3 rounded-xl border border-[#e2e2e2] leading-relaxed">
               💡 <strong>Accurate Safe-to-Spend:</strong> When your salary arrives on the 25th, your budget and daily pace will automatically calculate until your next payday instead of the calendar month end.
             </p>
