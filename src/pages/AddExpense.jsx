@@ -38,14 +38,14 @@ export default function AddExpense() {
       }
     : {};
 
-  const handleSave = (data) => {
+  const handleSave = async (data) => {
     setIsSaving(true);
     try {
       if (editData) {
-        updateExpense(editData.id, data);
+        await updateExpense(editData.id, data);
         showToast('Expense updated ✓');
       } else {
-        addExpense(data);
+        await addExpense(data);
         showToast('Expense saved ✓');
       }
       setTimeout(() => navigate('/'), 500);

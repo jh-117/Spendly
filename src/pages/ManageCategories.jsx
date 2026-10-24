@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCategories } from '../hooks/useCategories';
 import { useToast } from '../hooks/useToast';
+import { toCents, fromCents, formatCurrency } from '../lib/calculations';
 import Toast from '../components/ui/Toast';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 
@@ -26,16 +27,24 @@ export default function ManageCategories() {
   const [newName, setNewName] = useState('');
   const [newIcon, setNewIcon] = useState('📦');
   const [newExclude, setNewExclude] = useState(false);
+  const [newBudget, setNewBudget] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const activeCount = categories.filter(c => c.isActive).length;
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newName.trim()) return;
-    addCategory({ name: newName.trim(), icon: newIcon, excludeFromAvg: newExclude });
+    const budgetInCents = newBudget.trim() ? toCents(newBudget) : null;
+    await addCategory({
+      name: newName.trim(),
+      icon: newIcon,
+      excludeFromAvg: newExclude,
+      budgetInCents,
+    });
     setNewName('');
     setNewIcon('📦');
     setNewExclude(false);
+    setNewBudget('');
     setShowAddForm(false);
     showToast('Category added ✓');
   };
@@ -45,12 +54,20 @@ export default function ManageCategories() {
     setNewName(cat.name);
     setNewIcon(cat.icon);
     setNewExclude(cat.excludeFromAvg || false);
+    setNewBudget(cat.budgetInCents ? fromCents(cat.budgetInCents) : '');
   };
 
-  const handleSaveEdit = (id) => {
+  const handleSaveEdit = async (id) => {
     if (!newName.trim()) return;
-    updateCategory(id, { name: newName.trim(), icon: newIcon, excludeFromAvg: newExclude });
+    const budgetInCents = newBudget.trim() ? toCents(newBudget) : null;
+    await updateCategory(id, {
+      name: newName.trim(),
+      icon: newIcon,
+      excludeFromAvg: newExclude,
+      budgetInCents,
+    });
     setEditingId(null);
+    setNewBudget('');
     showToast('Category updated ✓');
   };
 
@@ -133,6 +150,23 @@ export default function ManageCategories() {
                       />
                     </button>
                   </div>
+                  <div className="flex items-center justify-between bg-[#F8FAFC] p-3 rounded-xl border border-[#e2e2e2]">
+                    <div>
+                      <span className="text-body-sm font-medium text-[#1a1c1c] block">Monthly Budget Limit</span>
+                      <span className="text-[11px] text-[#64748B]">Optional target for this category</span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 focus-within:border-[#181d3a]">
+                      <span className="text-xs text-[#64748B] font-semibold">RM</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        value={newBudget}
+                        onChange={e => setNewBudget(e.target.value)}
+                        className="w-20 text-body-sm text-[#181d3a] font-semibold bg-transparent border-none outline-none text-right"
+                      />
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button onClick={() => setEditingId(null)}
                       className="flex-1 py-2 rounded-full border border-[#e2e2e2] text-body-sm text-[#46464d] hover:bg-[#f3f3f3] active:scale-95 transition-all">
@@ -155,9 +189,16 @@ export default function ManageCategories() {
                     </div>
                     <div>
                       <h3 className="text-headline-lg-mobile font-semibold text-[#1a1c1c] leading-tight">{cat.name}</h3>
-                      {cat.isDefault && (
-                        <p className="text-label-caps text-[#64748B]">Default</p>
-                      )}
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {cat.isDefault && (
+                          <span className="text-label-caps text-[#64748B]">Default</span>
+                        )}
+                        {cat.budgetInCents ? (
+                          <span className="text-[11px] text-[#181d3a] font-semibold bg-[#dee1ff]/60 px-2 py-0.5 rounded-md">
+                            Budget: {formatCurrency(cat.budgetInCents)}/mo
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -233,9 +274,26 @@ export default function ManageCategories() {
                   />
                 </button>
               </div>
+              <div className="flex items-center justify-between bg-[#F8FAFC] p-3 rounded-xl border border-[#e2e2e2]">
+                <div>
+                  <span className="text-body-sm font-medium text-[#1a1c1c] block">Monthly Budget Limit</span>
+                  <span className="text-[11px] text-[#64748B]">Optional target for this category</span>
+                </div>
+                <div className="flex items-center gap-1 bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 focus-within:border-[#181d3a]">
+                  <span className="text-xs text-[#64748B] font-semibold">RM</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={newBudget}
+                    onChange={e => setNewBudget(e.target.value)}
+                    className="w-20 text-body-sm text-[#181d3a] font-semibold bg-transparent border-none outline-none text-right"
+                  />
+                </div>
+              </div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => { setShowAddForm(false); setNewName(''); setNewIcon('📦'); }}
+                  onClick={() => { setShowAddForm(false); setNewName(''); setNewIcon('📦'); setNewBudget(''); }}
                   className="flex-1 py-3 rounded-full border border-[#e2e2e2] text-body-md text-[#46464d] font-semibold hover:bg-[#f3f3f3] active:scale-95 transition-all"
                 >
                   Cancel

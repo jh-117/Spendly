@@ -5,6 +5,7 @@ import { useExpenses } from '../hooks/useExpenses';
 import { useBudget } from '../hooks/useBudget';
 import { useSettings } from '../hooks/useSettings';
 import { useCategories } from '../hooks/useCategories';
+import { useRecurringExpenses } from '../hooks/useRecurringExpenses';
 import {
   getDailyTotal,
   getBudgetRemaining,
@@ -23,12 +24,18 @@ import ExpenseListItem from '../components/expense/ExpenseListItem';
 
 function Home() {
   const navigate = useNavigate();
-  const { expenses } = useExpenses();
+  const { expenses, addExpense } = useExpenses();
   const { budget } = useBudget();
   const { settings } = useSettings();
   const { categories } = useCategories();
+  const { processDueRecurring } = useRecurringExpenses();
 
   const [today, setToday] = useState(() => new Date());
+
+  useEffect(() => {
+    // Process any due recurring expenses
+    processDueRecurring(addExpense);
+  }, [processDueRecurring, addExpense]);
 
   useEffect(() => {
     // Update today periodically
@@ -144,9 +151,7 @@ function Home() {
             <img src="https://i.pravatar.cc/150?img=47" alt="Profile" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-headline-lg-mobile font-bold text-[#181d3a] absolute left-1/2 -translate-x-1/2">Spendly</h1>
-          <button className="w-10 h-10 flex items-center justify-center rounded-full text-[#181d3a] hover:opacity-80">
-            <span className="material-symbols-outlined text-[24px]">calendar_month</span>
-          </button>
+          <div className="w-10" />
         </div>
       </header>
 

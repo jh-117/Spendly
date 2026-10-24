@@ -1,16 +1,54 @@
-import { useState, useCallback } from 'react';
-import { storage } from '../lib/storage';
+import { useState, useCallback, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { DEFAULT_SETTINGS } from '../lib/constants';
 
 export function useSettings() {
-  const [settings, setSettingsState] = useState(() => {
-    const saved = storage.get('settings', {});
-    return { ...DEFAULT_SETTINGS, ...saved };
-  });
+  const [settings, setSettingsState] = useState(DEFAULT_SETTINGS);
 
-  const updateSettings = useCallback((changes) => {
+  // Fetch settings from Supabase on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('id', 1)
+        .single();
+      if (!cancelled) {
+        if (error) {
+          console.error('Failed to load settings:', error);
+        } else if (data) {
+          setSettingsState({
+            ...DEFAULT_SETTINGS,
+            currency: data.currency || DEFAULT_SETTINGS.currency,
+            reminderEnabled: data.reminder_enabled ?? DEFAULT_SETTINGS.reminderEnabled,
+            reminderTime: data.reminder_time || DEFAULT_SETTINGS.reminderTime,
+            cycleStartDay: data.cycle_start_day ?? DEFAULT_SETTINGS.cycleStartDay,
+          });
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const updateSettings = useCallback(async (changes) => {
     const updated = { ...settings, ...changes };
-    storage.set('settings', updated);
+    const now = new Date().toISOString();
+
+    const dbUpdates = { updated_at: now };
+    if (changes.currency !== undefined) dbUpdates.currency = changes.currency;
+    if (changes.reminderEnabled !== undefined) dbUpdates.reminder_enabled = changes.reminderEnabled;
+    if (changes.reminderTime !== undefined) dbUpdates.reminder_time = changes.reminderTime;
+    if (changes.cycleStartDay !== undefined) dbUpdates.cycle_start_day = changes.cycleStartDay;
+
+    const { error } = await supabase
+      .from('settings')
+      .update(dbUpdates)
+      .eq('id', 1);
+    if (error) {
+      console.error('Failed to save settings:', error);
+      return;
+    }
     setSettingsState(updated);
   }, [settings]);
 

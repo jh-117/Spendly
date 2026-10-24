@@ -335,24 +335,46 @@ export default function Insights() {
                 {categoryPcts.map((ct, idx) => {
                   const cat = catMap[ct.categoryId];
                   const barWidth = ((ct.total / maxCatTotal) * 100).toFixed(1);
+                  const hasBudget = !!cat?.budgetInCents;
+                  const isOverBudget = hasBudget && ct.total > cat.budgetInCents;
+                  const isNearBudget = hasBudget && ct.total / cat.budgetInCents >= 0.8 && !isOverBudget;
+                  const barColor = isOverBudget ? '#ba1a1a' : isNearBudget ? '#d97706' : '#181d3a';
+
                   return (
                     <div key={ct.categoryId} className="flex flex-col gap-2">
                       <div className="flex justify-between items-center text-body-sm">
                         <div className="flex items-center gap-2">
                           <span>{cat?.icon || '📦'}</span>
-                          <span className="text-[#1a1c1c]">{cat?.name || ct.categoryId}</span>
+                          <span className="text-[#1a1c1c] font-medium">{cat?.name || ct.categoryId}</span>
                         </div>
-                        <span className="text-[#64748B]">
-                          {ct.percentage.toFixed(0)}% ({formatCurrency(ct.total)})
-                        </span>
+                        {hasBudget ? (
+                          <div className="flex items-center gap-1.5 text-xs font-semibold">
+                            <span className={isOverBudget ? 'text-[#ba1a1a]' : 'text-[#181d3a]'}>
+                              {formatCurrency(ct.total)} / {formatCurrency(cat.budgetInCents)}
+                            </span>
+                            {isOverBudget ? (
+                              <span className="text-[10px] bg-[#ffdad6] text-[#ba1a1a] px-1.5 py-0.5 rounded-full font-bold">
+                                Over
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-[#64748B]">
+                                ({Math.round((ct.total / cat.budgetInCents) * 100)}%)
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-[#64748B]">
+                            {ct.percentage.toFixed(0)}% ({formatCurrency(ct.total)})
+                          </span>
+                        )}
                       </div>
                       <div className="w-full bg-[#F8FAFC] rounded-full h-2 overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-700"
                           style={{
                             width: `${barWidth}%`,
-                            backgroundColor: '#181d3a',
-                            opacity: barOpacity[Math.min(idx, barOpacity.length - 1)],
+                            backgroundColor: barColor,
+                            opacity: hasBudget ? 1 : barOpacity[Math.min(idx, barOpacity.length - 1)],
                           }}
                         />
                       </div>

@@ -52,6 +52,7 @@ export default function History() {
   const [activeCycle, setActiveCycle] = useState(() => getBillingCycle(new Date(), cycleStartDay));
 
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -73,13 +74,24 @@ export default function History() {
     return filterByMonth(expenses, yearMonth);
   }, [expenses, viewMode, activeCycle, yearMonth]);
 
-  // Filter by category
-  const filtered = useMemo(() =>
-    selectedCategory
-      ? viewExpenses.filter(e => e.categoryId === selectedCategory)
-      : viewExpenses,
-    [viewExpenses, selectedCategory]
-  );
+  // Filter by category and search query
+  const filtered = useMemo(() => {
+    let list = viewExpenses;
+    if (selectedCategory) {
+      list = list.filter(e => e.categoryId === selectedCategory);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(e => {
+        const descMatch = (e.description || '').toLowerCase().includes(q);
+        const catName = catMap[e.categoryId]?.name?.toLowerCase() || '';
+        const catMatch = catName.includes(q);
+        const amountMatch = (e.amountInCents / 100).toFixed(2).includes(q) || String(e.amountInCents / 100).includes(q);
+        return descMatch || catMatch || amountMatch;
+      });
+    }
+    return list;
+  }, [viewExpenses, selectedCategory, searchQuery, catMap]);
 
   // Group by date desc
   const grouped = useMemo(() => {
@@ -174,8 +186,8 @@ export default function History() {
     return getCategoryPercentages(catTotals, selectedTotal);
   }, [selectedExpensesList, selectedTotal]);
 
-  const handleDelete = () => {
-    deleteExpense(deleteTarget.id);
+  const handleDelete = async () => {
+    await deleteExpense(deleteTarget.id);
     setDeleteTarget(null);
     setSelectedExpense(null);
     showToast('Expense deleted');
@@ -320,6 +332,29 @@ export default function History() {
           </section>
         )}
 
+        {/* Search Bar */}
+        <div className="relative">
+          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B] text-[20px] pointer-events-none">
+            search
+          </span>
+          <input
+            type="text"
+            placeholder="Search description, category, or amount..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-9 py-2.5 bg-white border border-[#e2e2e2] rounded-xl text-body-sm text-[#1a1c1c] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#181d3a] shadow-xs transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#1a1c1c] p-0.5"
+              aria-label="Clear search"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          )}
+        </div>
+
         {/* Category Filters */}
         {activeCatsInView.length > 0 && (
           <section className="-mx-5 px-5 overflow-x-auto hide-scrollbar pb-1">
@@ -354,15 +389,17 @@ export default function History() {
         {/* Transaction List */}
         {grouped.length === 0 ? (
           <EmptyState
-            emoji={selectedCategory ? '🔍' : '🕵️'}
-            title={selectedCategory ? 'No expenses found' : 'No expenses in this period'}
+            emoji={searchQuery || selectedCategory ? '🔍' : '🕵️'}
+            title={searchQuery || selectedCategory ? 'No expenses found' : 'No expenses in this period'}
             description={
-              selectedCategory
+              searchQuery
+                ? `No transactions match "${searchQuery}".`
+                : selectedCategory
                 ? "No transactions match this category filter."
                 : "Start tracking by adding your first expense."
             }
-            actionLabel={!selectedCategory ? '+ Add Expense' : undefined}
-            onAction={!selectedCategory ? () => navigate('/add') : undefined}
+            actionLabel={!searchQuery && !selectedCategory ? '+ Add Expense' : undefined}
+            onAction={!searchQuery && !selectedCategory ? () => navigate('/add') : undefined}
           />
         ) : (
           <section className="flex flex-col gap-6">
