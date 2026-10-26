@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { supabase } from '../lib/supabase';
+import { getItemDueDateInCycle } from '../lib/calculations';
 
 function fromRow(row) {
   return {
@@ -107,26 +108,45 @@ export function useRecurringExpenses() {
     await updateRecurringExpense(id, { isActive: newActive });
   }, [recurringExpenses, updateRecurringExpense]);
 
-  // Check and auto-log due recurring items for current month
-  const processDueRecurring = useCallback(async (addExpenseFn) => {
+  // Check and auto-log due recurring items for current cycle / month
+  const processDueRecurring = useCallback(async (addExpenseFn, currentCycle = null, existingExpenses = []) => {
     const now = new Date();
-    const currentYM = format(now, 'yyyy-MM');
-    const currentDay = now.getDate();
+    const todayStr = format(now, 'yyyy-MM-dd');
 
     for (const item of recurringExpenses) {
       if (!item.isActive) continue;
-      // If due this month and not logged yet
-      if (item.dayOfMonth <= currentDay && item.lastLoggedMonth !== currentYM) {
-        const dueDate = `${currentYM}-${String(item.dayOfMonth).padStart(2, '0')}`;
+
+      let dueDateStr;
+      let cycleKey;
+
+      if (currentCycle?.startDate && currentCycle?.endDate) {
+        dueDateStr = getItemDueDateInCycle(item.dayOfMonth, currentCycle);
+        cycleKey = currentCycle.startDate;
+      } else {
+        const currentYM = format(now, 'yyyy-MM');
+        dueDateStr = `${currentYM}-${String(item.dayOfMonth).padStart(2, '0')}`;
+        cycleKey = currentYM;
+      }
+
+      // Check if already present in existingExpenses to prevent double logging
+      const alreadyPresent = existingExpenses.some(
+        e => (e.description === `${item.description} (Recurring)` ||
+              e.description === item.description) &&
+             e.expenseDate >= (currentCycle?.startDate || `${format(now, 'yyyy-MM')}-01`) &&
+             e.expenseDate <= (currentCycle?.endDate || `${format(now, 'yyyy-MM')}-31`)
+      );
+
+      // If due on or before today, hasn't been logged for this cycle key, and not already present
+      if (dueDateStr && dueDateStr <= todayStr && item.lastLoggedMonth !== cycleKey && !alreadyPresent) {
         await addExpenseFn({
           amountInCents: item.amountInCents,
           categoryId: item.categoryId,
           description: `${item.description} (Recurring)`,
           paymentMethod: item.paymentMethod,
-          expenseDate: dueDate,
+          expenseDate: dueDateStr,
         });
 
-        await updateRecurringExpense(item.id, { lastLoggedMonth: currentYM });
+        await updateRecurringExpense(item.id, { lastLoggedMonth: cycleKey });
       }
     }
   }, [recurringExpenses, updateRecurringExpense]);

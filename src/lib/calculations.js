@@ -173,10 +173,39 @@ export function getCycleAverageDailySpending(expenses, cycle, isCurrentCycle = t
   return divisor > 0 ? Math.round(total / divisor) : 0;
 }
 
+/**
+ * Calculates the exact 'yyyy-MM-dd' due date for a recurring day of month within a cycle.
+ */
+export function getItemDueDateInCycle(dayOfMonth, cycle) {
+  if (!cycle?.startDate || !cycle?.endDate) return null;
+  const start = parseISO(cycle.startDate);
+  const end = parseISO(cycle.endDate);
+
+  const makeDate = (year, month, targetDay) => {
+    const maxDays = getDaysInMonth(new Date(year, month, 1));
+    const day = Math.min(Math.max(1, targetDay), maxDays);
+    return new Date(year, month, day);
+  };
+
+  const cand1 = makeDate(start.getFullYear(), start.getMonth(), dayOfMonth);
+  const cand1Str = format(cand1, 'yyyy-MM-dd');
+  if (cand1Str >= cycle.startDate && cand1Str <= cycle.endDate) {
+    return cand1Str;
+  }
+
+  const cand2 = makeDate(end.getFullYear(), end.getMonth(), dayOfMonth);
+  const cand2Str = format(cand2, 'yyyy-MM-dd');
+  if (cand2Str >= cycle.startDate && cand2Str <= cycle.endDate) {
+    return cand2Str;
+  }
+
+  return cand1Str;
+}
+
 /** Safe to spend per remaining day in cycle */
-export function getCycleSafeToSpend(budgetAmountInCents, cycleTotalCents, cycle) {
+export function getCycleSafeToSpend(budgetAmountInCents, cycleTotalCents, cycle, pendingRecurringCents = 0) {
   if (!budgetAmountInCents) return null;
-  const remainingBudget = budgetAmountInCents - cycleTotalCents;
+  const remainingBudget = budgetAmountInCents - cycleTotalCents - pendingRecurringCents;
   if (cycle.daysRemaining <= 0) return 0;
   return remainingBudget > 0 ? Math.floor(remainingBudget / cycle.daysRemaining) : 0;
 }
@@ -222,10 +251,10 @@ export function getCompletedMonthAverageDailySpending(expenses, yearMonth) {
   return totalDays > 0 ? Math.round(total / totalDays) : 0;
 }
 
-/** Budget remaining (can be negative) */
-export function getBudgetRemaining(monthlyTotal, budgetAmountInCents) {
+/** Budget remaining (can be negative, accounts for pending reserved recurring bills) */
+export function getBudgetRemaining(monthlyTotal, budgetAmountInCents, pendingRecurringCents = 0) {
   if (budgetAmountInCents == null) return null;
-  return budgetAmountInCents - monthlyTotal;
+  return budgetAmountInCents - monthlyTotal - pendingRecurringCents;
 }
 
 /** 0-100 percentage of budget used, null if no budget set */

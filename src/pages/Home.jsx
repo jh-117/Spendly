@@ -28,14 +28,9 @@ function Home() {
   const { budget } = useBudget();
   const { settings } = useSettings();
   const { categories } = useCategories();
-  const { processDueRecurring } = useRecurringExpenses();
+  const { recurringExpenses, processDueRecurring } = useRecurringExpenses();
 
   const [today, setToday] = useState(() => new Date());
-
-  useEffect(() => {
-    // Process any due recurring expenses
-    processDueRecurring(addExpense);
-  }, [processDueRecurring, addExpense]);
 
   useEffect(() => {
     // Update today periodically
@@ -62,6 +57,13 @@ function Home() {
     [expenses, currentCycle]
   );
 
+  useEffect(() => {
+    // Process any due recurring expenses with cycle context to prevent misaligned dates
+    if (currentCycle) {
+      processDueRecurring(addExpense, currentCycle, expenses);
+    }
+  }, [processDueRecurring, addExpense, currentCycle, expenses]);
+
   const prevCycleExpenses = useMemo(() =>
     filterByDateRange(expenses, prevCycle.startDate, prevCycle.endDate),
     [expenses, prevCycle]
@@ -76,6 +78,32 @@ function Home() {
     cycleExpenses.reduce((sum, e) => sum + e.amountInCents, 0),
     [cycleExpenses]
   );
+
+  // Active recurring commitments for this cycle:
+  // totalRecurringCents: all active recurring bills
+  // pendingRecurringCents: active recurring bills not yet logged in cycleExpenses
+  const { totalRecurringCents, pendingRecurringCents, loggedRecurringCents } = useMemo(() => {
+    const activeItems = recurringExpenses.filter(r => r.isActive);
+    const total = activeItems.reduce((sum, r) => sum + r.amountInCents, 0);
+
+    let pending = 0;
+    let logged = 0;
+
+    activeItems.forEach(item => {
+      const isAlreadyInExpenses = cycleExpenses.some(
+        e => e.description === `${item.description} (Recurring)` ||
+             (e.description.startsWith(item.description) && e.description.includes('(Recurring)'))
+      );
+
+      if (isAlreadyInExpenses) {
+        logged += item.amountInCents;
+      } else {
+        pending += item.amountInCents;
+      }
+    });
+
+    return { totalRecurringCents: total, pendingRecurringCents: pending, loggedRecurringCents: logged };
+  }, [recurringExpenses, cycleExpenses]);
 
   const prevTotal = useMemo(() =>
     prevCycleExpenses.reduce((sum, e) => sum + e.amountInCents, 0),
@@ -96,19 +124,21 @@ function Home() {
   );
 
   const budgetRemaining = useMemo(() =>
-    getBudgetRemaining(cycleTotal, budget?.amountInCents),
-    [cycleTotal, budget]
+    getBudgetRemaining(cycleTotal, budget?.amountInCents, pendingRecurringCents),
+    [cycleTotal, budget, pendingRecurringCents]
   );
 
+  // Total committed/used budget percentage (spent + pending reserved recurring)
+  const totalCommittedCents = cycleTotal + pendingRecurringCents;
   const budgetPct = useMemo(() =>
-    getBudgetUsedPercentage(cycleTotal, budget?.amountInCents),
-    [cycleTotal, budget]
+    getBudgetUsedPercentage(totalCommittedCents, budget?.amountInCents),
+    [totalCommittedCents, budget]
   );
 
   const daysRemaining = currentCycle.daysRemaining;
   const safeToSpend = useMemo(() =>
-    getCycleSafeToSpend(budget?.amountInCents, cycleTotal, currentCycle),
-    [budget, cycleTotal, currentCycle]
+    getCycleSafeToSpend(budget?.amountInCents, cycleTotal, currentCycle, pendingRecurringCents),
+    [budget, cycleTotal, currentCycle, pendingRecurringCents]
   );
 
   const pace = useMemo(() =>
@@ -141,7 +171,13 @@ function Home() {
     [expenses]
   );
 
-  const progressPct = Math.min(budgetPct ?? 0, 100);
+  const spentPct = budget?.amountInCents ? Math.min((cycleTotal / budget.amountInCents) * 100, 100) : 0;
+  const pendingRecurringPct = budget?.amountInCents
+    ? Math.min(
+        (pendingRecurringCents / budget.amountInCents) * 100,
+        Math.max(0, 100 - spentPct)
+      )
+    : 0;
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen pb-24 text-[#1a1c1c] antialiased">
@@ -273,8 +309,15 @@ function Home() {
               <>
                 <div className="flex justify-between items-end mb-3">
                   <div>
-                    <h3 className="text-body-sm text-[#64748B]">Budget Remaining</h3>
-                    <div className="text-headline-lg-mobile text-[#181d3a] mt-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-body-sm text-[#64748B]">Budget Remaining</h3>
+                      {totalRecurringCents > 0 && (
+                        <span className="text-[10px] bg-[#f1f5f9] text-[#475569] font-medium px-2 py-0.5 rounded-full" title="Recurring commitments are reserved upfront">
+                          Recurring Reserved
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-headline-lg-mobile text-[#181d3a] mt-1 font-bold">
                       {formatCurrency(budgetRemaining)}{' '}
                       <span className="text-body-sm text-[#64748B] font-normal">left</span>
                     </div>
@@ -283,18 +326,49 @@ function Home() {
                     of {formatCurrency(budget.amountInCents)}
                   </div>
                 </div>
-                <div className="h-3 w-full bg-[#e8e8e8] rounded-full overflow-hidden">
+
+                {/* Multi-segment Progress Bar: Spent & Reserved Recurring */}
+                <div className="h-3 w-full bg-[#e8e8e8] rounded-full overflow-hidden flex">
                   <div
-                    className="h-full bg-[#181d3a] rounded-full transition-all duration-1000"
-                    style={{ width: `${progressPct}%` }}
+                    className="h-full bg-[#181d3a] transition-all duration-700"
+                    style={{ width: `${spentPct}%` }}
+                    title={`Spent: ${formatCurrency(cycleTotal)}`}
                   />
+                  {pendingRecurringPct > 0 && (
+                    <div
+                      className="h-full bg-[#64748B] opacity-60 transition-all duration-700"
+                      style={{ width: `${pendingRecurringPct}%` }}
+                      title={`Reserved for pending recurring bills: ${formatCurrency(pendingRecurringCents)}`}
+                    />
+                  )}
                 </div>
+
+                {/* Breakdown legend */}
+                {totalRecurringCents > 0 && (
+                  <div className="mt-3 pt-2 flex flex-wrap items-center justify-between text-[11px] text-[#64748B] gap-2 border-t border-[#f8fafc]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#181d3a] flex-shrink-0" />
+                      <span>Spent: <span className="font-semibold text-[#1a1c1c]">{formatCurrency(cycleTotal)}</span></span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-[#64748B] opacity-60 flex-shrink-0" />
+                      <span>
+                        Recurring: <span className="font-semibold text-[#1a1c1c]">{formatCurrency(totalRecurringCents)}</span>
+                        {pendingRecurringCents > 0 ? (
+                          <span className="text-[#64748B] ml-1">({formatCurrency(pendingRecurringCents)} pending)</span>
+                        ) : (
+                          <span className="text-[#10b981] ml-1">(all logged)</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 
                 {paceStatus && (
-                  <div className="mt-4 pt-3 border-t border-[#f3f3f3] flex items-start gap-2">
+                  <div className="mt-3 pt-2.5 border-t border-[#f3f3f3] flex items-start gap-2">
                     <span className="material-symbols-outlined text-[16px] text-[#64748B] mt-0.5">insights</span>
                     <p className="text-[12px] text-[#64748B] leading-snug">
-                      <span className="font-semibold text-[#1a1c1c]">{Math.round(budgetPct)}% of budget used.</span><br/>
+                      <span className="font-semibold text-[#1a1c1c]">{Math.round(budgetPct)}% of budget utilized.</span><br/>
                       {PACE_TEXT[paceStatus]}
                     </p>
                   </div>
