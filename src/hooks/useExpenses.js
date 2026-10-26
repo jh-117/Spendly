@@ -37,8 +37,10 @@ export function useExpenses() {
   useEffect(() => {
     fetchExpenses();
 
+    // Use unique channel topic per subscription to avoid Supabase duplicate channel collisions
+    const channelId = `realtime_expenses_${Math.random().toString(36).slice(2, 9)}`;
     const channel = supabase
-      .channel('realtime_expenses')
+      .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'expenses' },

@@ -28,9 +28,10 @@ export function useBudget() {
   useEffect(() => {
     fetchBudget();
 
-    // Supabase Realtime subscription for cross-device sync
+    // Supabase Realtime subscription for cross-device sync (unique topic per instance)
+    const channelId = `realtime_budget_${Math.random().toString(36).slice(2, 9)}`;
     const channel = supabase
-      .channel('realtime_budget')
+      .channel(channelId)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'budget' },
