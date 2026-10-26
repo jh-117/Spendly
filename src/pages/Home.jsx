@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useExpenses } from '../hooks/useExpenses';
@@ -6,6 +6,7 @@ import { useBudget } from '../hooks/useBudget';
 import { useSettings } from '../hooks/useSettings';
 import { useCategories } from '../hooks/useCategories';
 import { useRecurringExpenses } from '../hooks/useRecurringExpenses';
+import CheckInModal from '../components/ui/CheckInModal';
 import {
   getDailyTotal,
   getBudgetRemaining,
@@ -57,12 +58,57 @@ function Home() {
     [expenses, currentCycle]
   );
 
+  const processedCycleRef = useRef('');
   useEffect(() => {
-    // Process any due recurring expenses with cycle context to prevent misaligned dates
-    if (currentCycle) {
+    // Process due recurring expenses once per cycle start to prevent infinite loops
+    if (currentCycle?.startDate && processedCycleRef.current !== currentCycle.startDate) {
+      processedCycleRef.current = currentCycle.startDate;
       processDueRecurring(addExpense, currentCycle, expenses);
     }
-  }, [processDueRecurring, addExpense, currentCycle, expenses]);
+  }, [currentCycle?.startDate, processDueRecurring, addExpense]);
+
+  // Daily check-in reminder logic
+  const [showCheckIn, setShowCheckIn] = useState(false);
+  useEffect(() => {
+    if (!settings.reminderEnabled) return;
+
+    try {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      const sessionKey = `spendly_reminder_shown_${todayStr}`;
+      if (sessionStorage.getItem(sessionKey)) return;
+
+      const now = new Date();
+      const [rHour, rMin] = (settings.reminderTime || '21:00').split(':').map(Number);
+      const reminderDate = new Date();
+      reminderDate.setHours(rHour, rMin, 0, 0);
+      if (now < reminderDate) return;
+
+      const hasExpenseToday = expenses.some(e => e.expenseDate === todayStr);
+      if (hasExpenseToday) return;
+
+      sessionStorage.setItem(sessionKey, '1');
+      setShowCheckIn(true);
+    } catch {
+      // Ignore sessionStorage errors
+    }
+  }, [settings.reminderEnabled, settings.reminderTime, expenses]);
+
+  const handleLogExpense = () => {
+    setShowCheckIn(false);
+    navigate('/add');
+  };
+
+  const handleNothingToday = () => {
+    try {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      const existing = JSON.parse(sessionStorage.getItem('spendly_no_expense_days') || '[]');
+      if (!existing.includes(todayStr)) existing.push(todayStr);
+      sessionStorage.setItem('spendly_no_expense_days', JSON.stringify(existing));
+    } catch {
+      // Ignore
+    }
+    setShowCheckIn(false);
+  };
 
   const prevCycleExpenses = useMemo(() =>
     filterByDateRange(expenses, prevCycle.startDate, prevCycle.endDate),
@@ -90,10 +136,14 @@ function Home() {
     let logged = 0;
 
     activeItems.forEach(item => {
-      const isAlreadyInExpenses = cycleExpenses.some(
-        e => e.description === `${item.description} (Recurring)` ||
-             (e.description.startsWith(item.description) && e.description.includes('(Recurring)'))
-      );
+      const desc = (item.description || '').trim();
+      const isAlreadyInExpenses = cycleExpenses.some(e => {
+        const eDesc = (e.description || '').trim();
+        return desc && (
+          eDesc === `${desc} (Recurring)` ||
+          (eDesc.startsWith(desc) && eDesc.includes('(Recurring)'))
+        );
+      });
 
       if (isAlreadyInExpenses) {
         logged += item.amountInCents;
@@ -181,6 +231,13 @@ function Home() {
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen pb-24 text-[#1a1c1c] antialiased">
+      {showCheckIn && (
+        <CheckInModal
+          onLogExpense={handleLogExpense}
+          onNothingToday={handleNothingToday}
+        />
+      )}
+
       {/* Header */}
       <header className="bg-[#f9f9f9] w-full top-0 sticky z-40">
         <div className="flex justify-between items-center px-5 py-4 max-w-[768px] mx-auto">

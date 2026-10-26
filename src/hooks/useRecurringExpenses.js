@@ -138,12 +138,18 @@ export function useRecurringExpenses() {
       );
 
       // Check if already present in existingExpenses to prevent double logging
-      const alreadyPresent = existingExpenses.some(
-        e => (e.description === `${item.description} (Recurring)` ||
-              e.description === item.description) &&
-             e.expenseDate >= (currentCycle?.startDate || `${format(now, 'yyyy-MM')}-01`) &&
-             e.expenseDate <= (currentCycle?.endDate || `${format(now, 'yyyy-MM')}-31`)
-      );
+      const itemDesc = (item.description || '').trim();
+      const alreadyPresent = Boolean(itemDesc && existingExpenses.some(
+        e => {
+          const eDesc = (e.description || '').trim();
+          const inRange = e.expenseDate >= (currentCycle?.startDate || `${format(now, 'yyyy-MM')}-01`) &&
+                          e.expenseDate <= (currentCycle?.endDate || `${format(now, 'yyyy-MM')}-31`);
+          return inRange && (
+            eDesc === `${itemDesc} (Recurring)` ||
+            eDesc === itemDesc
+          );
+        }
+      ));
 
       // If due on or before today, hasn't been logged for this cycle key, and not already present
       if (dueDateStr && dueDateStr <= todayStr && item.lastLoggedMonth !== cycleKey && !isOldFormatMatch && !alreadyPresent) {
