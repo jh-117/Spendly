@@ -339,7 +339,7 @@ export default function Insights() {
                   const hasBudget = !!cat?.budgetInCents;
                   const isOverBudget = hasBudget && ct.total > cat.budgetInCents;
                   const isNearBudget = hasBudget && ct.total / cat.budgetInCents >= 0.8 && !isOverBudget;
-                  const barColor = isOverBudget ? '#ba1a1a' : isNearBudget ? '#d97706' : '#181d3a';
+                  const barColor = isOverBudget ? '#424769' : isNearBudget ? '#64748B' : '#181d3a';
 
                   return (
                     <div key={ct.categoryId} className="flex flex-col gap-2">
@@ -350,11 +350,11 @@ export default function Insights() {
                         </div>
                         {hasBudget ? (
                           <div className="flex items-center gap-1.5 text-xs font-semibold">
-                            <span className={isOverBudget ? 'text-[#ba1a1a]' : 'text-[#181d3a]'}>
+                            <span className={isOverBudget ? 'text-[#424769] font-bold' : 'text-[#181d3a]'}>
                               {formatCurrency(ct.total)} / {formatCurrency(cat.budgetInCents)}
                             </span>
                             {isOverBudget ? (
-                              <span className="text-[10px] bg-[#ffdad6] text-[#ba1a1a] px-1.5 py-0.5 rounded-full font-bold">
+                              <span className="text-[10px] bg-[#dee1ff] text-[#424769] px-1.5 py-0.5 rounded-full font-bold">
                                 Over
                               </span>
                             ) : (

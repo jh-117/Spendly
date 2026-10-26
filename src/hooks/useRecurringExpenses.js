@@ -128,6 +128,15 @@ export function useRecurringExpenses() {
         cycleKey = currentYM;
       }
 
+      // Migration: old format was 'yyyy-MM', new format is cycle startDate 'yyyy-MM-dd'
+      // If lastLoggedMonth is in old format and matches current cycle's month or dueDate, treat as already logged
+      const lastLogged = item.lastLoggedMonth || '';
+      const isOldFormatMatch = lastLogged.length === 7 && (
+        (currentCycle?.startDate && currentCycle.startDate.startsWith(lastLogged)) ||
+        (currentCycle?.endDate && currentCycle.endDate.startsWith(lastLogged)) ||
+        (dueDateStr && dueDateStr.startsWith(lastLogged))
+      );
+
       // Check if already present in existingExpenses to prevent double logging
       const alreadyPresent = existingExpenses.some(
         e => (e.description === `${item.description} (Recurring)` ||
@@ -137,7 +146,7 @@ export function useRecurringExpenses() {
       );
 
       // If due on or before today, hasn't been logged for this cycle key, and not already present
-      if (dueDateStr && dueDateStr <= todayStr && item.lastLoggedMonth !== cycleKey && !alreadyPresent) {
+      if (dueDateStr && dueDateStr <= todayStr && item.lastLoggedMonth !== cycleKey && !isOldFormatMatch && !alreadyPresent) {
         await addExpenseFn({
           amountInCents: item.amountInCents,
           categoryId: item.categoryId,

@@ -376,6 +376,59 @@ function Home() {
               </>
             )}
           </div>
+
+          {/* Category budget alerts */}
+          {(() => {
+            const alerts = categories
+              .filter(c => c.isActive && c.budgetInCents)
+              .map(c => {
+                const spent = cycleExpenses
+                  .filter(e => e.categoryId === c.id)
+                  .reduce((s, e) => s + e.amountInCents, 0);
+                const pct = spent / c.budgetInCents;
+                return { cat: c, spent, pct };
+              })
+              .filter(a => a.pct >= 0.8)
+              .sort((a, b) => b.pct - a.pct);
+            
+            if (!alerts.length) return null;
+            return (
+              <div className="col-span-2 flex flex-col gap-2">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-label-caps text-[#64748B] uppercase">Category Limit Alerts</span>
+                  <button
+                    onClick={() => navigate('/categories')}
+                    className="text-[11px] text-[#64748B] hover:text-[#181d3a] font-medium"
+                  >
+                    Manage
+                  </button>
+                </div>
+                {alerts.map(({ cat, spent, pct }) => (
+                  <div
+                    key={cat.id}
+                    className="bg-white rounded-[16px] px-4 py-3 border border-[#e2e2e2] flex items-center justify-between gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-xl flex-shrink-0">{cat.icon}</span>
+                      <div className="min-w-0">
+                        <span className="text-body-sm font-semibold text-[#181d3a] block truncate">{cat.name}</span>
+                        <span className="text-[11px] text-[#64748B]">
+                          {formatCurrency(spent)} of {formatCurrency(cat.budgetInCents)} limit
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex-shrink-0 ${
+                      pct >= 1
+                        ? 'bg-[#dee1ff] text-[#424769]'
+                        : 'bg-[#f1f5f9] text-[#64748B]'
+                    }`}>
+                      {pct >= 1 ? 'Limit Reached' : `${Math.round(pct * 100)}%`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </section>
 
         {/* Recent Expenses */}

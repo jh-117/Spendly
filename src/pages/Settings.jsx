@@ -255,6 +255,56 @@ export default function Settings() {
           </div>
         </section>
 
+        {/* Daily Check-in */}
+        <section className="bg-white rounded-2xl p-6 border border-[#e2e2e2] flex flex-col gap-4">
+          <h3 className="text-label-caps text-[#64748B] uppercase">Daily Check-in</h3>
+          <div className="flex justify-between items-center gap-4">
+            <div>
+              <span className="text-body-md text-[#1a1c1c] font-medium block">Check-in Reminder</span>
+              <span className="text-body-sm text-[#64748B] block mt-0.5">
+                Get prompted to log expenses when you open the app after your set time.
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                const newVal = !settings.reminderEnabled;
+                updateSettings({ reminderEnabled: newVal });
+                showToast(newVal ? 'Check-in enabled ✓' : 'Check-in disabled');
+              }}
+              className={`relative w-12 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 ${
+                settings.reminderEnabled ? 'bg-[#181d3a]' : 'bg-[#e2e2e2]'
+              }`}
+            >
+              <span
+                className={`absolute w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                  settings.reminderEnabled ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {settings.reminderEnabled && (
+            <>
+              <div className="flex justify-between items-center pt-3 border-t border-[#f3f3f3]">
+                <span className="text-body-sm text-[#1a1c1c] font-medium">Reminder Time</span>
+                <input
+                  type="time"
+                  value={settings.reminderTime || '21:00'}
+                  onChange={e => {
+                    updateSettings({ reminderTime: e.target.value });
+                    showToast('Reminder time updated ✓');
+                  }}
+                  className="bg-[#f3f3f3] border-none rounded-xl text-body-md font-semibold text-[#181d3a] px-3.5 py-2 focus:ring-1 focus:ring-[#181d3a] outline-none cursor-pointer"
+                />
+              </div>
+
+              <p className="text-[12px] text-[#64748B] bg-[#f8fafc] p-3 rounded-xl border border-[#e2e2e2] leading-relaxed">
+                💡 <strong>App-open check:</strong> This prompts you when you open Spendly after your set time — not a background push notification. Open the app daily to keep your streak!
+              </p>
+            </>
+          )}
+        </section>
+
         {/* Recurring & Fixed Expenses */}
         <section className="bg-white rounded-2xl p-6 border border-[#e2e2e2] flex flex-col gap-4">
           <div className="flex justify-between items-center">
