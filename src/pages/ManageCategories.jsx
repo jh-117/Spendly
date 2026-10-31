@@ -72,31 +72,33 @@ export default function ManageCategories() {
   };
 
   return (
-    <div className="bg-[#f9f9f9] min-h-screen text-[#1a1c1c] antialiased pb-32">
-      {/* Header */}
-      <header className="w-full top-0 sticky z-50 bg-[#f9f9f9]/90 backdrop-blur-md">
-        <div className="flex justify-between items-center px-5 py-4 max-w-[768px] mx-auto h-16">
+    <div className="bg-[#F8FAFC] min-h-screen text-[#0F1424] antialiased pb-32">
+      {/* Modern Frosted Header */}
+      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#F8FAFC]/85 border-b border-black/[0.03]">
+        <div className="flex justify-between items-center px-5 py-3.5 max-w-[768px] mx-auto">
           <button
+            type="button"
             onClick={() => navigate('/settings')}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#e8e8e8] transition-colors text-[#181d3a]"
+            aria-label="Back"
+            className="w-9 h-9 rounded-full bg-white ring-1 ring-black/[0.06] flex items-center justify-center text-[#64748B] hover:text-[#0F1424] hover:shadow-xs active:scale-95 transition-all"
           >
-            <span className="material-symbols-outlined icon-fill">arrow_back</span>
+            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           </button>
-          <h1 className="text-headline-lg-mobile font-bold text-[#181d3a] absolute left-1/2 -translate-x-1/2">
+          <h1 className="text-base font-bold text-[#0F1424] tracking-tight">
             Categories
           </h1>
-          <div className="w-10" />
+          <div className="w-9" />
         </div>
       </header>
 
-      <main className="max-w-[768px] mx-auto px-5 pt-4">
-        <div className="mb-6 flex justify-between items-end">
+      <main className="max-w-[768px] mx-auto px-5 pt-3">
+        <div className="mb-5 flex justify-between items-end">
           <div>
-            <h2 className="text-headline-lg-mobile font-bold text-[#181d3a]">Manage Categories</h2>
-            <p className="text-body-sm text-[#64748B] mt-1">Organize your spending habits</p>
+            <h2 className="text-xl font-bold text-[#0F1424] tracking-tight">Manage Categories</h2>
+            <p className="text-xs text-[#64748B] mt-0.5">Organize and customize spending buckets</p>
           </div>
-          <span className="text-label-caps text-[#64748B] bg-[#e8e8e8] px-3 py-1 rounded-full">
-            {activeCount} ACTIVE
+          <span className="text-[11px] font-bold text-[#0F1424] bg-white ring-1 ring-black/[0.06] shadow-2xs px-3 py-1 rounded-full uppercase tracking-wider">
+            {activeCount} Active
           </span>
         </div>
 

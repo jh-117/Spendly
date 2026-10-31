@@ -183,43 +183,54 @@ export default function Insights() {
   const barOpacity = ['1', '0.8', '0.6', '0.4'];
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen pb-24 text-[#1a1c1c] antialiased">
-      {/* Header */}
-      <header className="bg-[#f9f9f9] w-full top-0 sticky z-40">
-        <div className="flex justify-between items-center px-5 py-4 max-w-[768px] mx-auto">
-          <div className="w-10 h-10 rounded-full bg-[#eeeeee] flex items-center justify-center overflow-hidden">
-            <img src="https://i.pravatar.cc/150?img=47" alt="Profile" className="w-full h-full object-cover" />
+    <div className="bg-[#F8FAFC] min-h-screen pb-28 text-[#0F1424] antialiased">
+      {/* Modern Frosted Header */}
+      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#F8FAFC]/85 border-b border-black/[0.03]">
+        <div className="flex justify-between items-center px-5 py-3.5 max-w-[768px] mx-auto">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#0F1424] flex items-center justify-center text-white font-bold text-sm shadow-sm ring-1 ring-white/10">
+              S
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base font-bold text-[#0F1424] tracking-tight leading-none">Insights</span>
+              <span className="text-[10px] font-medium text-[#64748B] tracking-wide mt-0.5">Financial Analytics</span>
+            </div>
           </div>
-          <h1 className="text-headline-lg-mobile font-bold text-[#181d3a]">Spendly</h1>
-          <div className="w-10" />
+          <button
+            onClick={() => navigate('/settings')}
+            aria-label="Settings"
+            className="w-9 h-9 rounded-full bg-white ring-1 ring-black/[0.06] flex items-center justify-center text-[#64748B] hover:text-[#0F1424] hover:shadow-xs active:scale-95 transition-all"
+          >
+            <span className="material-symbols-outlined text-[19px]">settings</span>
+          </button>
         </div>
       </header>
 
-      <main className="max-w-[768px] mx-auto px-5 space-y-4 pb-6">
-        {/* Page title */}
-        <div className="pt-2 pb-1">
-          <h2 className="text-display-hero text-[#181d3a] mb-2">Insights</h2>
-          
-          {/* View Mode Toggle (Pay Cycle vs Calendar Month) */}
+      <main className="max-w-[768px] mx-auto px-5 pt-3 space-y-4 pb-6">
+        {/* View Mode Toggle & Navigation */}
+        <div className="flex flex-col gap-3 pt-1">
+          {/* Segmented Control */}
           {!isCalendarOnly && (
-            <div className="flex justify-between items-center bg-white p-1 rounded-xl border border-[#e2e2e2] shadow-xs mb-3">
+            <div className="flex items-center bg-white p-1 rounded-2xl ring-1 ring-black/[0.05] shadow-2xs">
               <button
+                type="button"
                 onClick={() => setViewMode('cycle')}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-center flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all text-center flex items-center justify-center gap-1.5 active:scale-95 ${
                   viewMode === 'cycle'
-                    ? 'bg-[#181d3a] text-white shadow-xs'
-                    : 'text-[#64748B] hover:text-[#181d3a]'
+                    ? 'bg-[#0F1424] text-white shadow-xs'
+                    : 'text-[#64748B] hover:text-[#0F1424]'
                 }`}
               >
                 <span className="material-symbols-outlined text-[15px]">event_repeat</span>
                 Pay Cycle ({cycleStartDay}th)
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode('month')}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-center flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all text-center flex items-center justify-center gap-1.5 active:scale-95 ${
                   viewMode === 'month'
-                    ? 'bg-[#181d3a] text-white shadow-xs'
-                    : 'text-[#64748B] hover:text-[#181d3a]'
+                    ? 'bg-[#0F1424] text-white shadow-xs'
+                    : 'text-[#64748B] hover:text-[#0F1424]'
                 }`}
               >
                 <span className="material-symbols-outlined text-[15px]">calendar_month</span>
@@ -228,20 +239,28 @@ export default function Insights() {
             </div>
           )}
 
-          <div className="flex items-center gap-3">
+          {/* Period Navigator Pill */}
+          <div className="flex items-center justify-between bg-white px-3 py-2 rounded-2xl ring-1 ring-black/[0.05] shadow-2xs">
             <button
+              type="button"
               onClick={handlePrev}
-              className="p-1 text-[#64748B] hover:text-[#181d3a] active:scale-95 transition-all"
+              aria-label="Previous period"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#64748B] hover:text-[#0F1424] hover:bg-[#F8FAFC] active:scale-95 transition-all"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
-            <p className="text-body-sm font-semibold text-[#181d3a]">
-              {viewMode === 'cycle' ? activeCycle.label : formatYearMonth(yearMonth)}
-            </p>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px] text-indigo-600">date_range</span>
+              <span className="text-xs sm:text-sm font-bold text-[#0F1424] tracking-tight">
+                {viewMode === 'cycle' ? activeCycle.label : formatYearMonth(yearMonth)}
+              </span>
+            </div>
             <button
+              type="button"
               onClick={handleNext}
               disabled={!canGoNext}
-              className="p-1 text-[#64748B] hover:text-[#181d3a] active:scale-95 transition-all disabled:opacity-30"
+              aria-label="Next period"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#64748B] hover:text-[#0F1424] hover:bg-[#F8FAFC] active:scale-95 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_right</span>
             </button>
@@ -258,31 +277,54 @@ export default function Insights() {
           />
         ) : (
           <>
-            {/* Period Summary Card */}
-            <section className="bg-white rounded-2xl p-6 shadow-sm border border-[#e2e2e2] flex flex-col gap-4 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#181d3a]/5 rounded-bl-full -mr-10 -mt-10 pointer-events-none" />
-              <div className="flex flex-col gap-1">
-                <span className="text-body-sm text-[#64748B]">
-                  {viewMode === 'cycle' ? 'Cycle Total Spent' : 'Monthly Total Spent'}
-                </span>
-                <span className="text-headline-lg text-[#181d3a]">{formatCurrency(periodTotal)}</span>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#F8FAFC] rounded-xl p-3 flex flex-col gap-1">
-                  <span className="text-label-caps text-[#64748B] uppercase">Daily Avg</span>
-                  <span className="text-body-md text-[#181d3a] font-semibold">{formatCurrency(avgDaily)}</span>
+            {/* Period Summary Card: Modern Editorial Style */}
+            <section className="bg-white rounded-[26px] p-6 ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)] flex flex-col gap-5 relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">
+                    {viewMode === 'cycle' ? 'Cycle Total Spent' : 'Monthly Total Spent'}
+                  </span>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-base font-semibold text-[#64748B] tracking-wider">RM</span>
+                    <span className="text-3xl sm:text-4xl font-extrabold text-[#0F1424] tracking-tight tabular-nums">
+                      {Math.floor(periodTotal / 100).toLocaleString('en-MY')}
+                    </span>
+                    <span className="text-xl font-semibold text-[#64748B] tabular-nums">
+                      .{String(periodTotal % 100).padStart(2, '0')}
+                    </span>
+                  </div>
                 </div>
-                <div className="bg-[#F8FAFC] rounded-xl p-3 flex flex-col gap-1">
-                  <span className="text-label-caps text-[#64748B] uppercase">Top Category</span>
+
+                <span className="text-[11px] font-semibold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/50">
+                  {periodExpenses.length} transactions
+                </span>
+              </div>
+
+              {/* Bento Metrics Sub-grid */}
+              <div className="grid grid-cols-2 gap-3 pt-1 border-t border-[#F8FAFC]">
+                <div className="bg-[#F8FAFC] rounded-[18px] p-3.5 ring-1 ring-black/[0.03] flex flex-col gap-1">
+                  <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Daily Avg</span>
+                  <span className="text-base sm:text-lg font-bold text-[#0F1424] tabular-nums">
+                    {formatCurrency(avgDaily)}
+                  </span>
+                  <span className="text-[10px] text-[#94A3B8]">Variable daily rate</span>
+                </div>
+                <div className="bg-[#F8FAFC] rounded-[18px] p-3.5 ring-1 ring-black/[0.03] flex flex-col gap-1">
+                  <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Top Category</span>
                   {topCategory ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{catMap[topCategory.categoryId]?.icon || '📦'}</span>
-                      <span className="text-body-md text-[#181d3a] font-semibold">
-                        {catMap[topCategory.categoryId]?.name} {topCategory.percentage.toFixed(0)}%
-                      </span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xl flex-shrink-0">{catMap[topCategory.categoryId]?.icon || '📦'}</span>
+                      <div className="min-w-0">
+                        <span className="text-xs sm:text-sm font-bold text-[#0F1424] block truncate">
+                          {catMap[topCategory.categoryId]?.name}
+                        </span>
+                        <span className="text-[10px] font-semibold text-indigo-600">
+                          {topCategory.percentage.toFixed(0)}% of total
+                        </span>
+                      </div>
                     </div>
                   ) : (
-                    <span className="text-body-md text-[#64748B]">—</span>
+                    <span className="text-xs text-[#64748B]">—</span>
                   )}
                 </div>
               </div>
@@ -290,71 +332,79 @@ export default function Insights() {
 
             {/* Spending Pace + Estimated */}
             {isCurrentPeriod && (
-              <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {pace && paceStatus && (
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#e2e2e2] flex flex-col justify-between min-h-[140px]">
-                    <div className="flex justify-between items-start">
-                      <span className="text-body-md text-[#64748B]">Spending Pace</span>
-                      <div className="p-2 bg-[#F8FAFC] rounded-full">
-                        <span className="material-symbols-outlined text-[#181d3a] text-sm">speed</span>
+                  <div className="bg-white rounded-[22px] p-5 ring-1 ring-black/[0.05] shadow-2xs flex flex-col justify-between">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Spending Pace</span>
+                      <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[16px]">speed</span>
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-headline-lg-mobile text-[#181d3a]">{PACE_LABELS[paceStatus].text}</h3>
-                      <p className="text-body-sm text-[#64748B] mt-1">{PACE_LABELS[paceStatus].sub}</p>
+                      <h3 className="text-base font-bold text-[#0F1424]">{PACE_LABELS[paceStatus].text}</h3>
+                      <p className="text-xs text-[#64748B] mt-1 leading-relaxed">{PACE_LABELS[paceStatus].sub}</p>
                       {fixedTotalThisPeriod > 0 && (
-                        <p className="text-[11px] text-[#64748B] mt-2 pt-2 border-t border-[#f3f3f3]">
-                          Excluded categories contributed {formatCurrency(fixedTotalThisPeriod)} to your total spending.
+                        <p className="text-[10px] text-[#94A3B8] mt-2.5 pt-2 border-t border-[#F8FAFC]">
+                          Excluded recurring: {formatCurrency(fixedTotalThisPeriod)}
                         </p>
                       )}
                     </div>
                   </div>
                 )}
                 {estimated != null && (
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#e2e2e2] flex flex-col justify-between min-h-[140px]">
-                    <div className="flex justify-between items-start">
-                      <span className="text-body-md text-[#64748B]">
-                        {viewMode === 'cycle' ? 'Est. End of Cycle' : 'Est. End of Month'}
+                  <div className="bg-white rounded-[22px] p-5 ring-1 ring-black/[0.05] shadow-2xs flex flex-col justify-between">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-xs font-bold text-[#64748B] uppercase tracking-wider">
+                        {viewMode === 'cycle' ? 'Est. Cycle End' : 'Est. Month End'}
                       </span>
-                      <div className="p-2 bg-[#F8FAFC] rounded-full">
-                        <span className="material-symbols-outlined text-[#181d3a] text-sm">event_upcoming</span>
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[16px]">event_upcoming</span>
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-headline-lg-mobile text-[#181d3a]">{formatCurrency(estimated)}</h3>
-                      <p className="text-body-sm text-[#64748B] mt-1">Estimated at current spending pace</p>
+                      <h3 className="text-xl font-bold text-[#0F1424] tabular-nums">{formatCurrency(estimated)}</h3>
+                      <p className="text-xs text-[#64748B] mt-1">Projected at current burn pace</p>
                     </div>
                   </div>
                 )}
               </section>
             )}
 
-            {/* Category Breakdown */}
-            <section className="bg-white rounded-2xl p-6 shadow-sm border border-[#e2e2e2]">
-              <h3 className="text-body-md text-[#181d3a] font-semibold mb-6">Category Breakdown</h3>
+            {/* Category Breakdown (Modern Capsule Progress Bars) */}
+            <section className="bg-white rounded-[26px] p-6 ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)]">
+              <div className="flex justify-between items-center mb-5">
+                <div>
+                  <h3 className="text-sm font-bold text-[#0F1424] tracking-tight">Category Breakdown</h3>
+                  <p className="text-xs text-[#64748B]">Distribution across spending categories</p>
+                </div>
+                <span className="text-xs font-semibold text-[#64748B]">{categoryPcts.length} active</span>
+              </div>
+
               <div className="space-y-4">
-                {categoryPcts.map((ct, idx) => {
+                {categoryPcts.map((ct) => {
                   const cat = catMap[ct.categoryId];
                   const barWidth = ((ct.total / maxCatTotal) * 100).toFixed(1);
                   const hasBudget = !!cat?.budgetInCents;
                   const isOverBudget = hasBudget && ct.total > cat.budgetInCents;
                   const isNearBudget = hasBudget && ct.total / cat.budgetInCents >= 0.8 && !isOverBudget;
-                  const barColor = isOverBudget ? '#424769' : isNearBudget ? '#64748B' : '#181d3a';
 
                   return (
                     <div key={ct.categoryId} className="flex flex-col gap-2">
-                      <div className="flex justify-between items-center text-body-sm">
-                        <div className="flex items-center gap-2">
-                          <span>{cat?.icon || '📦'}</span>
-                          <span className="text-[#1a1c1c] font-medium">{cat?.name || ct.categoryId}</span>
+                      <div className="flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center text-sm flex-shrink-0">
+                            {cat?.icon || '📦'}
+                          </span>
+                          <span className="font-bold text-[#0F1424] truncate">{cat?.name || ct.categoryId}</span>
                         </div>
                         {hasBudget ? (
-                          <div className="flex items-center gap-1.5 text-xs font-semibold">
-                            <span className={isOverBudget ? 'text-[#424769] font-bold' : 'text-[#181d3a]'}>
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <span className={isOverBudget ? 'text-rose-600' : 'text-[#0F1424]'}>
                               {formatCurrency(ct.total)} / {formatCurrency(cat.budgetInCents)}
                             </span>
                             {isOverBudget ? (
-                              <span className="text-[10px] bg-[#dee1ff] text-[#424769] px-1.5 py-0.5 rounded-full font-bold">
+                              <span className="text-[10px] bg-rose-50 text-rose-700 ring-1 ring-rose-200 px-1.5 py-0.5 rounded-full font-bold">
                                 Over
                               </span>
                             ) : (
@@ -364,19 +414,28 @@ export default function Insights() {
                             )}
                           </div>
                         ) : (
-                          <span className="text-[#64748B]">
-                            {ct.percentage.toFixed(0)}% ({formatCurrency(ct.total)})
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-[#0F1424] tabular-nums">
+                              {formatCurrency(ct.total)}
+                            </span>
+                            <span className="text-xs text-[#64748B] font-medium tabular-nums">
+                              {ct.percentage.toFixed(0)}%
+                            </span>
+                          </div>
                         )}
                       </div>
-                      <div className="w-full bg-[#F8FAFC] rounded-full h-2 overflow-hidden">
+
+                      {/* Capsule track */}
+                      <div className="w-full bg-[#F1F5F9] rounded-full h-2 overflow-hidden p-0.5 ring-1 ring-black/[0.02]">
                         <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{
-                            width: `${barWidth}%`,
-                            backgroundColor: barColor,
-                            opacity: hasBudget ? 1 : barOpacity[Math.min(idx, barOpacity.length - 1)],
-                          }}
+                          className={`h-full rounded-full transition-all duration-700 ${
+                            isOverBudget
+                              ? 'bg-rose-500'
+                              : isNearBudget
+                              ? 'bg-amber-500'
+                              : 'bg-gradient-to-r from-[#0F1424] to-[#2D3359]'
+                          }`}
+                          style={{ width: `${barWidth}%` }}
                         />
                       </div>
                     </div>
@@ -385,60 +444,80 @@ export default function Insights() {
               </div>
             </section>
 
-            {/* Period Comparison */}
-            <section className="bg-white rounded-2xl p-6 shadow-sm border border-[#e2e2e2]">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-body-md text-[#181d3a] font-semibold">
-                  {viewMode === 'cycle' ? 'Cycle vs Cycle' : 'Month vs Month'}
-                </h3>
+            {/* Period Comparison (Modern Column Chart) */}
+            <section className="bg-white rounded-[26px] p-6 ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)]">
+              <div className="flex justify-between items-center mb-5">
+                <div>
+                  <h3 className="text-sm font-bold text-[#0F1424] tracking-tight">
+                    {viewMode === 'cycle' ? 'Cycle Comparison' : 'Monthly Comparison'}
+                  </h3>
+                  <p className="text-xs text-[#64748B]">Comparing total spend vs previous period</p>
+                </div>
               </div>
+
               {comparison.direction === 'no-data' ? (
-                <p className="text-body-sm text-[#64748B]">
-                  No data for previous {viewMode === 'cycle' ? 'cycle' : 'month'}.
+                <p className="text-xs text-[#64748B] py-4 text-center">
+                  No data available for the previous {viewMode === 'cycle' ? 'cycle' : 'month'}.
                 </p>
               ) : (
                 <>
-                  <div className="flex items-end justify-center h-40 gap-8 mb-4">
-                    {/* Previous period bar */}
+                  <div className="flex items-end justify-center h-44 gap-12 pt-4 pb-2">
                     {(() => {
                       const maxH = Math.max(prevPeriodTotal, periodTotal) || 1;
-                      const prevH = Math.round((prevPeriodTotal / maxH) * 100);
-                      const curH = Math.round((periodTotal / maxH) * 100);
+                      const prevH = Math.max(12, Math.round((prevPeriodTotal / maxH) * 100));
+                      const curH = Math.max(12, Math.round((periodTotal / maxH) * 100));
                       return (
                         <>
-                          <div className="flex flex-col items-center gap-2 w-20">
-                            <div
-                              className="w-full bg-[#e2e2e2] rounded-t-xl transition-all duration-500"
-                              style={{ height: `${prevH}%` }}
-                            />
-                            <span className="text-[11px] text-[#64748B] text-center truncate w-full">
-                              {viewMode === 'cycle'
-                                ? (typeof prevPeriod === 'object' ? prevPeriod.shortLabel : prevPeriod)
-                                : formatYearMonth(prevPeriod).split(' ')[0].slice(0, 3)}
+                          {/* Previous Column */}
+                          <div className="flex flex-col items-center gap-2.5 w-24">
+                            <span className="text-[11px] font-bold text-[#64748B] tabular-nums">
+                              {formatCurrency(prevPeriodTotal)}
+                            </span>
+                            <div className="w-full h-32 flex items-end">
+                              <div
+                                className="w-full bg-[#E2E8F0] rounded-xl transition-all duration-700 hover:opacity-90"
+                                style={{ height: `${prevH}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-semibold text-[#64748B] text-center truncate w-full">
+                              Previous
                             </span>
                           </div>
-                          <div className="flex flex-col items-center gap-2 w-20 group relative">
-                            <div
-                              className="w-full bg-[#181d3a] rounded-t-xl transition-all duration-500"
-                              style={{ height: `${curH}%` }}
-                            />
-                            <span className="text-[11px] text-[#181d3a] font-semibold text-center truncate w-full">
-                              {viewMode === 'cycle'
-                                ? activeCycle.shortLabel
-                                : formatYearMonth(yearMonth).split(' ')[0].slice(0, 3)}
+
+                          {/* Current Column */}
+                          <div className="flex flex-col items-center gap-2.5 w-24">
+                            <span className="text-[11px] font-bold text-[#0F1424] tabular-nums">
+                              {formatCurrency(periodTotal)}
+                            </span>
+                            <div className="w-full h-32 flex items-end">
+                              <div
+                                className="w-full bg-gradient-to-t from-[#0F1424] to-[#1E2746] rounded-xl transition-all duration-700 shadow-sm"
+                                style={{ height: `${curH}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-bold text-[#0F1424] text-center truncate w-full">
+                              Current
                             </span>
                           </div>
                         </>
                       );
                     })()}
                   </div>
-                  <p className="text-center text-body-sm text-[#64748B] pt-4 border-t border-[#e2e2e2]">
-                    {comparison.direction === 'up'
-                      ? `You've spent ${comparison.changePercent?.toFixed(0)}% more than last ${viewMode === 'cycle' ? 'cycle' : 'month'}.`
-                      : comparison.direction === 'down'
-                      ? `You've spent ${comparison.changePercent?.toFixed(0)}% less than last ${viewMode === 'cycle' ? 'cycle' : 'month'}.`
-                      : `Same spending as last ${viewMode === 'cycle' ? 'cycle' : 'month'}.`}
-                  </p>
+
+                  <div className="mt-4 pt-4 border-t border-[#F8FAFC] flex items-center justify-center gap-2 text-xs text-[#64748B]">
+                    <span className={`material-symbols-outlined text-[16px] ${
+                      comparison.direction === 'up' ? 'text-amber-500' : 'text-emerald-500'
+                    }`}>
+                      {comparison.direction === 'up' ? 'trending_up' : 'trending_down'}
+                    </span>
+                    <span>
+                      {comparison.direction === 'up'
+                        ? `Spent ${comparison.changePercent?.toFixed(0)}% more than previous period.`
+                        : comparison.direction === 'down'
+                        ? `Spent ${comparison.changePercent?.toFixed(0)}% less than previous period.`
+                        : `Same spending as previous period.`}
+                    </span>
+                  </div>
                 </>
               )}
             </section>

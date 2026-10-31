@@ -11,21 +11,21 @@ export default function BottomNav() {
   const navigate = useNavigate();
 
   return (
-    <nav className="glass-nav fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-2 border-t border-[#e2e2e2] shadow-sm">
+    <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-2 backdrop-blur-xl bg-white/85 border-t border-black/[0.04] shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
       {/* Home */}
       <NavLink
         to="/"
         end
         className={({ isActive }) =>
-          `flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-colors ${
-            isActive ? 'text-[#181d3a] font-bold' : 'text-[#64748B] hover:bg-[#f3f3f3]'
+          `flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all ${
+            isActive ? 'text-[#0F1424] font-bold' : 'text-[#64748B] hover:text-[#0F1424]'
           }`
         }
       >
         {({ isActive }) => (
           <>
-            <span className={`material-symbols-outlined text-[24px] ${isActive ? 'icon-fill' : ''}`}>home</span>
-            <span className="text-label-caps mt-1">Home</span>
+            <span className={`material-symbols-outlined text-[24px] transition-transform ${isActive ? 'icon-fill scale-110' : ''}`}>home</span>
+            <span className="text-[11px] font-semibold mt-1">Home</span>
           </>
         )}
       </NavLink>
@@ -34,15 +34,15 @@ export default function BottomNav() {
       <NavLink
         to="/history"
         className={({ isActive }) =>
-          `flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-colors ${
-            isActive ? 'text-[#181d3a] font-bold' : 'text-[#64748B] hover:bg-[#f3f3f3]'
+          `flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all ${
+            isActive ? 'text-[#0F1424] font-bold' : 'text-[#64748B] hover:text-[#0F1424]'
           }`
         }
       >
         {({ isActive }) => (
           <>
-            <span className={`material-symbols-outlined text-[24px] ${isActive ? 'icon-fill' : ''}`}>history</span>
-            <span className="text-label-caps mt-1">History</span>
+            <span className={`material-symbols-outlined text-[24px] transition-transform ${isActive ? 'icon-fill scale-110' : ''}`}>history</span>
+            <span className="text-[11px] font-semibold mt-1">History</span>
           </>
         )}
       </NavLink>
@@ -51,10 +51,10 @@ export default function BottomNav() {
       <div className="relative w-16 h-16 flex items-center justify-center">
         <button
           onClick={() => navigate('/add')}
-          className="fab-shadow absolute -top-6 w-14 h-14 bg-[#181d3a] text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+          className="absolute -top-5 w-13 h-13 bg-gradient-to-tr from-[#0F1424] to-[#1E2746] text-white rounded-full flex items-center justify-center ring-4 ring-[#F8FAFC] shadow-[0_10px_25px_-5px_rgba(15,20,36,0.4)] hover:scale-105 active:scale-95 transition-all"
           aria-label="Add expense"
         >
-          <span className="material-symbols-outlined text-[28px]">add</span>
+          <span className="material-symbols-outlined text-[26px]">add</span>
         </button>
       </div>
 
@@ -62,15 +62,15 @@ export default function BottomNav() {
       <NavLink
         to="/insights"
         className={({ isActive }) =>
-          `flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-colors ${
-            isActive ? 'text-[#181d3a] font-bold' : 'text-[#64748B] hover:bg-[#f3f3f3]'
+          `flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all ${
+            isActive ? 'text-[#0F1424] font-bold' : 'text-[#64748B] hover:text-[#0F1424]'
           }`
         }
       >
         {({ isActive }) => (
           <>
-            <span className={`material-symbols-outlined text-[24px] ${isActive ? 'icon-fill' : ''}`}>insights</span>
-            <span className="text-label-caps mt-1">Insights</span>
+            <span className={`material-symbols-outlined text-[24px] transition-transform ${isActive ? 'icon-fill scale-110' : ''}`}>insights</span>
+            <span className="text-[11px] font-semibold mt-1">Insights</span>
           </>
         )}
       </NavLink>
@@ -79,15 +79,15 @@ export default function BottomNav() {
       <NavLink
         to="/settings"
         className={({ isActive }) =>
-          `flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-colors ${
-            isActive ? 'text-[#181d3a] font-bold' : 'text-[#64748B] hover:bg-[#f3f3f3]'
+          `flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all ${
+            isActive ? 'text-[#0F1424] font-bold' : 'text-[#64748B] hover:text-[#0F1424]'
           }`
         }
       >
         {({ isActive }) => (
           <>
-            <span className={`material-symbols-outlined text-[24px] ${isActive ? 'icon-fill' : ''}`}>settings</span>
-            <span className="text-label-caps mt-1">Settings</span>
+            <span className={`material-symbols-outlined text-[24px] transition-transform ${isActive ? 'icon-fill scale-110' : ''}`}>settings</span>
+            <span className="text-[11px] font-semibold mt-1">Settings</span>
           </>
         )}
       </NavLink>

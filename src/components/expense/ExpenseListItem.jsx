@@ -31,50 +31,57 @@ export default function ExpenseListItem({
 
   return (
     <div
-      className={`flex items-center justify-between p-3 rounded-xl transition-all group cursor-pointer ${
+      className={`flex items-center justify-between p-3 rounded-[16px] transition-all group cursor-pointer active:scale-[0.99] ${
         isSelected
-          ? 'bg-[#181d3a]/5 border border-[#181d3a]/20'
-          : 'hover:bg-[#f3f3f3] border border-transparent'
+          ? 'bg-[#0F1424]/5 ring-1 ring-[#0F1424]/20'
+          : 'hover:bg-[#F8FAFC]'
       }`}
       onClick={handleClick}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3.5 min-w-0">
         {isSelectable && (
           <div
-            className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-all flex-shrink-0 ${
+            className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all flex-shrink-0 ${
               isSelected
-                ? 'bg-[#181d3a] border-[#181d3a] text-white shadow-sm'
+                ? 'bg-[#0F1424] border-[#0F1424] text-white shadow-xs'
                 : 'border-[#cbd5e1] bg-white group-hover:border-[#94a3b8]'
             }`}
           >
-            {isSelected && <span className="material-symbols-outlined text-[16px]">check</span>}
+            {isSelected && <span className="material-symbols-outlined text-[14px]">check</span>}
           </div>
         )}
-        <div className="w-12 h-12 rounded-full bg-[#e2e2e2] flex items-center justify-center text-2xl flex-shrink-0">
+        <div className="w-11 h-11 rounded-[14px] bg-[#F1F5F9] ring-1 ring-black/[0.04] flex items-center justify-center text-xl flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
           {category?.icon || '📦'}
         </div>
-        <div className="flex flex-col">
-          <span className="text-body-md font-semibold text-[#1a1c1c] leading-snug">
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm font-semibold text-[#0F1424] leading-snug truncate">
             {expense.description || category?.name || 'Expense'}
           </span>
-          <span className="text-body-sm text-[#64748B]">
-            {category?.name}{expense.paymentMethod ? ` · ${expense.paymentMethod}` : ''}
-            {' · '}{dateLabel}
+          <span className="text-xs text-[#64748B] flex items-center gap-1 mt-0.5 truncate">
+            <span>{category?.name}</span>
+            {expense.paymentMethod && (
+              <>
+                <span>·</span>
+                <span className="capitalize">{expense.paymentMethod}</span>
+              </>
+            )}
+            <span>·</span>
+            <span>{dateLabel}</span>
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <span className="text-body-md font-semibold text-[#1a1c1c]">
+      <div className="flex items-center gap-3 flex-shrink-0 ml-3">
+        <span className="text-sm sm:text-base font-bold text-[#0F1424] tabular-nums tracking-tight">
           {formatCurrency(expense.amountInCents)}
         </span>
         {!isSelectable && showRepeat && onRepeat && (
           <button
             aria-label="Repeat expense"
             onClick={e => { e.stopPropagation(); onRepeat(); }}
-            className="w-8 h-8 rounded-full bg-[#eeeeee] flex items-center justify-center text-[#64748B] hover:text-[#181d3a] hover:bg-[#dee1ff] transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+            className="w-8 h-8 rounded-full bg-[#F1F5F9] ring-1 ring-black/[0.04] flex items-center justify-center text-[#64748B] hover:text-[#0F1424] hover:bg-[#dee1ff] transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
           >
-            <span className="material-symbols-outlined text-[18px]">refresh</span>
+            <span className="material-symbols-outlined text-[17px]">refresh</span>
           </button>
         )}
       </div>

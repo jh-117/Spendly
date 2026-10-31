@@ -205,24 +205,31 @@ export default function History() {
   const totalSpentInView = viewExpenses.reduce((s, e) => s + e.amountInCents, 0);
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen pb-36 text-[#1a1c1c] antialiased">
-      {/* Header */}
-      <header className="bg-[#f9f9f9] w-full top-0 sticky z-40">
-        <div className="flex justify-between items-center px-5 py-4 max-w-[768px] mx-auto">
-          <div className="w-10 h-10 rounded-full bg-[#eeeeee] flex items-center justify-center overflow-hidden">
-            <img src="https://i.pravatar.cc/150?img=47" alt="Profile" className="w-full h-full object-cover" />
+    <div className="bg-[#F8FAFC] min-h-screen pb-36 text-[#0F1424] antialiased">
+      {/* Modern Frosted Header */}
+      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#F8FAFC]/85 border-b border-black/[0.03]">
+        <div className="flex justify-between items-center px-5 py-3.5 max-w-[768px] mx-auto">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#0F1424] flex items-center justify-center text-white font-bold text-sm shadow-sm ring-1 ring-white/10">
+              S
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base font-bold text-[#0F1424] tracking-tight leading-none">History</span>
+              <span className="text-[10px] font-medium text-[#64748B] tracking-wide mt-0.5">Transactions</span>
+            </div>
           </div>
-          <h1 className="text-headline-lg-mobile font-bold text-[#181d3a]">Spendly</h1>
+
           {/* Tally / Select Mode Toggle Button */}
           <button
+            type="button"
             onClick={() => {
               setIsSelectMode(prev => !prev);
               if (isSelectMode) setSelectedIds(new Set());
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 shadow-2xs ring-1 ${
               isSelectMode
-                ? 'bg-[#181d3a] text-white shadow-sm ring-2 ring-[#dee1ff]'
-                : 'bg-[#dee1ff]/60 text-[#181d3a] hover:bg-[#dee1ff]'
+                ? 'bg-[#0F1424] text-white ring-[#0F1424]'
+                : 'bg-white text-[#0F1424] ring-black/[0.06] hover:bg-[#F8FAFC]'
             }`}
           >
             <span className="material-symbols-outlined text-[16px]">
@@ -233,33 +240,35 @@ export default function History() {
         </div>
       </header>
 
-      <main className="max-w-[768px] mx-auto px-5 pt-2 pb-8 flex flex-col gap-5">
+      <main className="max-w-[768px] mx-auto px-5 pt-3 pb-8 flex flex-col gap-4">
         {/* View Mode Toggle (Pay Cycle vs Calendar Month) */}
         {!isCalendarOnly && (
-          <div className="flex justify-between items-center bg-white p-1.5 rounded-xl border border-[#e2e2e2] shadow-xs">
+          <div className="flex items-center bg-white p-1 rounded-2xl ring-1 ring-black/[0.05] shadow-2xs">
             <button
+              type="button"
               onClick={() => {
                 setViewMode('cycle');
                 setSelectedCategory('');
               }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-center flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all text-center flex items-center justify-center gap-1.5 active:scale-95 ${
                 viewMode === 'cycle'
-                  ? 'bg-[#181d3a] text-white shadow-xs'
-                  : 'text-[#64748B] hover:text-[#181d3a]'
+                  ? 'bg-[#0F1424] text-white shadow-xs'
+                  : 'text-[#64748B] hover:text-[#0F1424]'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">event_repeat</span>
               Pay Cycle ({cycleStartDay}th)
             </button>
             <button
+              type="button"
               onClick={() => {
                 setViewMode('month');
                 setSelectedCategory('');
               }}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-center flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all text-center flex items-center justify-center gap-1.5 active:scale-95 ${
                 viewMode === 'month'
-                  ? 'bg-[#181d3a] text-white shadow-xs'
-                  : 'text-[#64748B] hover:text-[#181d3a]'
+                  ? 'bg-[#0F1424] text-white shadow-xs'
+                  : 'text-[#64748B] hover:text-[#0F1424]'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">calendar_month</span>
@@ -269,62 +278,71 @@ export default function History() {
         )}
 
         {/* Date Period Selector Card */}
-        <section className="flex flex-col items-center bg-white rounded-2xl p-6 border border-[#e2e2e2] shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#181d3a]/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-          <div className="flex items-center gap-3 mb-2">
+        <section className="bg-white rounded-[24px] p-5 ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)] flex flex-col items-center relative overflow-hidden">
+          <div className="flex items-center justify-between w-full mb-3">
             <button
+              type="button"
               onClick={handlePrev}
-              className="p-2 text-[#64748B] hover:text-[#181d3a] transition-colors rounded-full hover:bg-[#f3f3f3] active:scale-95"
+              aria-label="Previous period"
+              className="w-8 h-8 text-[#64748B] hover:text-[#0F1424] transition-colors rounded-full flex items-center justify-center hover:bg-[#F8FAFC] active:scale-95"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
-            <h2 className="text-headline-lg-mobile font-bold text-[#181d3a] text-center">
-              {viewMode === 'cycle' ? activeCycle.label : formatYearMonth(yearMonth)}
-            </h2>
+            <div className="flex flex-col items-center">
+              <h2 className="text-sm sm:text-base font-bold text-[#0F1424] text-center tracking-tight">
+                {viewMode === 'cycle' ? activeCycle.label : formatYearMonth(yearMonth)}
+              </h2>
+            </div>
             <button
+              type="button"
               onClick={handleNext}
               disabled={!canGoNext}
-              className="p-2 text-[#64748B] hover:text-[#181d3a] transition-colors rounded-full hover:bg-[#f3f3f3] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Next period"
+              className="w-8 h-8 text-[#64748B] hover:text-[#0F1424] transition-colors rounded-full flex items-center justify-center hover:bg-[#F8FAFC] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_right</span>
             </button>
           </div>
-          <p className="text-body-sm text-[#64748B]">
-            Total Spent:{' '}
-            <span className="font-semibold text-[#1a1c1c]">
+
+          <div className="flex items-baseline gap-1.5 pt-2 border-t border-[#F8FAFC] w-full justify-center">
+            <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">Total Spent:</span>
+            <span className="text-lg sm:text-xl font-extrabold text-[#0F1424] tabular-nums tracking-tight">
               {formatCurrency(totalSpentInView)}
             </span>
-          </p>
+          </div>
         </section>
 
         {/* Tally Mode Controls Bar */}
         {isSelectMode && (
-          <section className="bg-[#dee1ff]/40 border border-[#dee1ff] rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2.5">
+          <section className="bg-indigo-50/70 border border-indigo-200/60 rounded-[20px] p-3.5 flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-[#181d3a]">info</span>
-              <span className="text-xs font-semibold text-[#181d3a]">
-                Tap any expense to select and tally
+              <span className="material-symbols-outlined text-[18px] text-indigo-700">info</span>
+              <span className="text-xs font-bold text-indigo-900">
+                Tap transactions to tally and sum
               </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
+                type="button"
                 onClick={handleSelectAllVisible}
-                className="bg-white text-[#181d3a] text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-[#cbd5e1] hover:bg-[#f8fafc] active:scale-95 transition-all"
+                className="bg-white text-[#0F1424] text-xs font-bold px-3 py-1.5 rounded-full ring-1 ring-black/[0.06] hover:bg-[#F8FAFC] active:scale-95 transition-all shadow-2xs"
               >
                 Select All ({filtered.length})
               </button>
               {viewMode === 'cycle' && (
                 <button
+                  type="button"
                   onClick={handleSelectSincePayday}
-                  className="bg-white text-[#181d3a] text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-[#cbd5e1] hover:bg-[#f8fafc] active:scale-95 transition-all"
+                  className="bg-white text-[#0F1424] text-xs font-bold px-3 py-1.5 rounded-full ring-1 ring-black/[0.06] hover:bg-[#F8FAFC] active:scale-95 transition-all shadow-2xs"
                 >
-                  Since Payday ({activeCycle.shortLabel.split('–')[0].trim()})
+                  Since Payday
                 </button>
               )}
               {selectedIds.size > 0 && (
                 <button
+                  type="button"
                   onClick={handleClearSelection}
-                  className="text-xs font-semibold text-[#ba1a1a] hover:underline px-2 py-1"
+                  className="text-xs font-bold text-rose-600 hover:underline px-2 py-1"
                 >
                   Clear ({selectedIds.size})
                 </button>
@@ -335,20 +353,21 @@ export default function History() {
 
         {/* Search Bar */}
         <div className="relative">
-          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B] text-[20px] pointer-events-none">
+          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] text-[18px] pointer-events-none">
             search
           </span>
           <input
             type="text"
-            placeholder="Search description, category, or amount..."
+            placeholder="Search transactions, notes, or amounts..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-9 py-2.5 bg-white border border-[#e2e2e2] rounded-xl text-body-sm text-[#1a1c1c] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#181d3a] shadow-xs transition-colors"
+            className="w-full pl-10 pr-9 py-3 bg-white ring-1 ring-black/[0.06] rounded-[20px] text-xs sm:text-sm font-medium text-[#0F1424] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#0F1424] shadow-2xs transition-all"
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#1a1c1c] p-0.5"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#0F1424] p-0.5"
               aria-label="Clear search"
             >
               <span className="material-symbols-outlined text-[18px]">close</span>
@@ -361,28 +380,34 @@ export default function History() {
           <section className="-mx-5 px-5 overflow-x-auto hide-scrollbar pb-1">
             <div className="flex gap-2 w-max">
               <button
+                type="button"
                 onClick={() => setSelectedCategory('')}
-                className={`px-4 py-2 rounded-lg text-body-sm font-semibold whitespace-nowrap active:scale-95 transition-transform ${
+                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap active:scale-95 transition-all shadow-2xs ${
                   !selectedCategory
-                    ? 'bg-[#181d3a] text-white shadow-[0_2px_8px_rgba(24,29,58,0.15)]'
-                    : 'bg-white text-[#64748B] border border-[#e2e2e2] hover:bg-[#f3f3f3]'
+                    ? 'bg-[#0F1424] text-white shadow-xs'
+                    : 'bg-white text-[#64748B] ring-1 ring-black/[0.06] hover:bg-[#F8FAFC]'
                 }`}
               >
                 All
               </button>
-              {activeCatsInView.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id === selectedCategory ? '' : cat.id)}
-                  className={`px-4 py-2 rounded-lg text-body-sm whitespace-nowrap active:scale-95 transition-all flex items-center gap-1.5 ${
-                    selectedCategory === cat.id
-                      ? 'bg-[#181d3a] text-white font-semibold'
-                      : 'bg-white text-[#64748B] border border-[#e2e2e2] hover:bg-[#f3f3f3]'
-                  }`}
-                >
-                  {cat.icon} {cat.name}
-                </button>
-              ))}
+              {activeCatsInView.map(cat => {
+                const isSelected = selectedCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(isSelected ? '' : cat.id)}
+                    className={`px-3.5 py-2 rounded-full text-xs font-bold whitespace-nowrap active:scale-95 transition-all flex items-center gap-1.5 shadow-2xs ${
+                      isSelected
+                        ? 'bg-[#0F1424] text-white shadow-xs'
+                        : 'bg-white text-[#64748B] ring-1 ring-black/[0.06] hover:bg-[#F8FAFC]'
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
         )}
@@ -403,18 +428,18 @@ export default function History() {
             onAction={!searchQuery && !selectedCategory ? () => navigate('/add') : undefined}
           />
         ) : (
-          <section className="flex flex-col gap-6">
+          <section className="flex flex-col gap-5">
             {grouped.map(({ date, items, total }) => (
-              <div key={date} className="flex flex-col gap-3">
-                <div className="flex justify-between items-end px-1 border-b border-[#e2e2e2] pb-2">
-                  <h3 className="text-body-sm font-semibold text-[#64748B] uppercase tracking-wider">
+              <div key={date} className="flex flex-col gap-2.5">
+                <div className="flex justify-between items-end px-1 pb-1">
+                  <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-wider">
                     {formatExpenseDate(date, new Date())}
                   </h3>
-                  <span className="text-body-sm text-[#64748B]">
+                  <span className="text-xs font-bold text-[#64748B] tabular-nums">
                     -{formatCurrency(total)}
                   </span>
                 </div>
-                <div className="bg-white rounded-2xl border border-[#e2e2e2] p-2 flex flex-col gap-1">
+                <div className="bg-white rounded-[24px] ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)] p-2 flex flex-col divide-y divide-[#F8FAFC]">
                   {items.map(expense => (
                     <ExpenseListItem
                       key={expense.id}
@@ -437,19 +462,19 @@ export default function History() {
 
       {/* Multi-Select Floating Tally Dock */}
       {isSelectMode && (
-        <div className="fixed bottom-20 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
-          <div className="max-w-[768px] w-full bg-[#181d3a] text-white rounded-2xl p-4 shadow-2xl pointer-events-auto border border-[#333857] flex flex-col gap-3">
+        <div className="fixed bottom-24 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
+          <div className="max-w-[768px] w-full bg-[#0F1424]/95 backdrop-blur-xl text-white rounded-[26px] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.4)] pointer-events-auto ring-1 ring-white/10 flex flex-col gap-3.5">
             {/* Top row: Count, Amount, and Actions */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-white/10 ring-1 ring-white/10 flex items-center justify-center text-white flex-shrink-0">
                   <span className="material-symbols-outlined text-[20px]">calculate</span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-[#cbd5e1] font-medium uppercase tracking-wider block">
+                  <span className="text-[10px] text-[#94A3B8] font-bold uppercase tracking-wider block">
                     {selectedIds.size} {selectedIds.size === 1 ? 'item' : 'items'} selected
                   </span>
-                  <span className="text-headline-lg-mobile font-bold text-white tracking-tight">
+                  <span className="text-lg sm:text-xl font-extrabold text-white tracking-tight tabular-nums">
                     {formatCurrency(selectedTotal)}
                   </span>
                 </div>
@@ -458,18 +483,20 @@ export default function History() {
               <div className="flex items-center gap-2">
                 {selectedIds.size > 0 && (
                   <button
+                    type="button"
                     onClick={handleClearSelection}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#cbd5e1] hover:text-white hover:bg-white/10 transition-colors active:scale-95"
+                    className="px-3 py-1.5 rounded-full text-xs font-semibold text-[#cbd5e1] hover:text-white hover:bg-white/10 transition-colors active:scale-95"
                   >
                     Clear
                   </button>
                 )}
                 <button
+                  type="button"
                   onClick={() => {
                     setIsSelectMode(false);
                     setSelectedIds(new Set());
                   }}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-white text-[#181d3a] hover:bg-[#f1f5f9] transition-all active:scale-95 shadow-sm"
+                  className="px-4 py-2 rounded-full text-xs font-bold bg-white text-[#0F1424] hover:bg-[#f1f5f9] transition-all active:scale-95 shadow-sm"
                 >
                   Done
                 </button>
@@ -479,20 +506,20 @@ export default function History() {
             {/* Category percentage breakdown */}
             {selectedCategoryBreakdown.length > 0 && (
               <div className="pt-2.5 border-t border-white/10 flex flex-col gap-2">
-                <div className="flex justify-between items-center text-[11px] text-[#94a3b8]">
-                  <span>Category Breakdown</span>
+                <div className="flex justify-between items-center text-[10px] text-[#94A3B8] font-semibold uppercase tracking-wider">
+                  <span>Category Distribution</span>
                   <span>{selectedCategoryBreakdown.length} {selectedCategoryBreakdown.length === 1 ? 'category' : 'categories'}</span>
                 </div>
 
                 {/* Progress bar visualizing breakdown */}
-                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden flex">
+                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden flex p-0.5 ring-1 ring-white/5">
                   {selectedCategoryBreakdown.map((item, idx) => {
                     const colors = ['bg-[#60a5fa]', 'bg-[#34d399]', 'bg-[#fbbf24]', 'bg-[#f87171]', 'bg-[#c084fc]', 'bg-[#38bdf8]'];
                     return (
                       <div
                         key={item.categoryId}
                         style={{ width: `${item.percentage}%` }}
-                        className={`h-full ${colors[idx % colors.length]}`}
+                        className={`h-full rounded-full ${colors[idx % colors.length]}`}
                         title={`${catMap[item.categoryId]?.name}: ${item.percentage.toFixed(0)}%`}
                       />
                     );
@@ -504,14 +531,14 @@ export default function History() {
                   {selectedCategoryBreakdown.map(item => (
                     <div
                       key={item.categoryId}
-                      className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-lg text-xs whitespace-nowrap flex-shrink-0"
+                      className="flex items-center gap-1.5 bg-white/10 border border-white/10 px-2.5 py-1 rounded-full text-xs whitespace-nowrap flex-shrink-0"
                     >
                       <span>{catMap[item.categoryId]?.icon || '📦'}</span>
                       <span className="font-medium text-white">{catMap[item.categoryId]?.name}</span>
-                      <span className="text-[#94a3b8] font-bold">
+                      <span className="text-[#94A3B8] font-bold">
                         {item.percentage.toFixed(0)}%
                       </span>
-                      <span className="text-[#cbd5e1] text-[11px]">
+                      <span className="text-[#cbd5e1] text-[11px] tabular-nums">
                         ({formatCurrency(item.total)})
                       </span>
                     </div>
@@ -523,74 +550,78 @@ export default function History() {
         </div>
       )}
 
-      {/* Expense Detail Sheet */}
+      {/* Expense Detail Bottom Sheet */}
       {selectedExpense && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedExpense(null)} />
-          <div className="relative w-full max-w-[768px] bg-white rounded-t-3xl p-6 pb-10 shadow-2xl flex flex-col gap-4">
-            <div className="w-10 h-1 bg-[#e2e2e2] rounded-full mx-auto mb-2" />
+          <div className="relative w-full max-w-[768px] bg-white rounded-t-[32px] p-6 pb-12 shadow-2xl flex flex-col gap-4 ring-1 ring-black/[0.05]">
+            <div className="w-10 h-1 bg-[#E2E8F0] rounded-full mx-auto mb-1" />
+            
             {/* Category icon + name */}
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-[#eeeeee] flex items-center justify-center text-4xl">
+            <div className="flex items-center gap-3.5">
+              <div className="w-14 h-14 rounded-[18px] bg-[#F1F5F9] ring-1 ring-black/[0.04] flex items-center justify-center text-3xl shadow-2xs">
                 {catMap[selectedExpense.categoryId]?.icon || '📦'}
               </div>
-              <div>
-                <h2 className="text-headline-lg-mobile font-semibold text-[#1a1c1c]">
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-lg font-bold text-[#0F1424] truncate">
                   {selectedExpense.description || catMap[selectedExpense.categoryId]?.name}
                 </h2>
-                <p className="text-body-sm text-[#64748B]">
+                <p className="text-xs text-[#64748B] font-medium">
                   {catMap[selectedExpense.categoryId]?.name}
                 </p>
               </div>
             </div>
 
-            {/* Amount */}
-            <div className="bg-[#F8FAFC] rounded-2xl p-4 flex flex-col gap-3">
-              <div className="flex justify-between">
-                <span className="text-label-caps text-[#64748B] uppercase">Amount</span>
-                <span className="text-headline-lg-mobile font-semibold text-[#181d3a]">
+            {/* Amount details card */}
+            <div className="bg-[#F8FAFC] rounded-[22px] p-4 ring-1 ring-black/[0.03] flex flex-col gap-3">
+              <div className="flex justify-between items-baseline">
+                <span className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Amount</span>
+                <span className="text-xl sm:text-2xl font-black text-[#0F1424] tabular-nums tracking-tight">
                   {formatCurrency(selectedExpense.amountInCents)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-label-caps text-[#64748B] uppercase">Date</span>
-                <span className="text-body-sm text-[#1a1c1c]">{selectedExpense.expenseDate}</span>
+              <div className="flex justify-between text-xs">
+                <span className="font-bold text-[#64748B] uppercase tracking-wider">Date</span>
+                <span className="font-semibold text-[#0F1424]">{selectedExpense.expenseDate}</span>
               </div>
               {selectedExpense.paymentMethod && (
-                <div className="flex justify-between">
-                  <span className="text-label-caps text-[#64748B] uppercase">Payment</span>
-                  <span className="text-body-sm text-[#1a1c1c] capitalize">{selectedExpense.paymentMethod}</span>
+                <div className="flex justify-between text-xs">
+                  <span className="font-bold text-[#64748B] uppercase tracking-wider">Payment</span>
+                  <span className="font-semibold text-[#0F1424] capitalize">{selectedExpense.paymentMethod}</span>
                 </div>
               )}
               {selectedExpense.description && (
-                <div className="flex justify-between">
-                  <span className="text-label-caps text-[#64748B] uppercase">Note</span>
-                  <span className="text-body-sm text-[#1a1c1c]">{selectedExpense.description}</span>
+                <div className="flex justify-between text-xs">
+                  <span className="font-bold text-[#64748B] uppercase tracking-wider">Note</span>
+                  <span className="font-semibold text-[#0F1424]">{selectedExpense.description}</span>
                 </div>
               )}
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 mt-2">
+            <div className="flex gap-2.5 mt-2">
               <button
+                type="button"
                 onClick={() => { setSelectedExpense(null); handleRepeat(selectedExpense); }}
-                className="flex-1 py-3 rounded-full border border-[#e2e2e2] text-body-md text-[#46464d] font-semibold hover:bg-[#f3f3f3] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-full bg-white ring-1 ring-black/[0.06] text-xs font-bold text-[#0F1424] hover:bg-[#F8FAFC] active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-2xs"
               >
-                <span className="material-symbols-outlined text-sm">refresh</span>
+                <span className="material-symbols-outlined text-[16px]">refresh</span>
                 Repeat
               </button>
               <button
+                type="button"
                 onClick={() => { setSelectedExpense(null); handleEdit(selectedExpense); }}
-                className="flex-1 py-3 rounded-full border border-[#e2e2e2] text-body-md text-[#46464d] font-semibold hover:bg-[#f3f3f3] active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-full bg-white ring-1 ring-black/[0.06] text-xs font-bold text-[#0F1424] hover:bg-[#F8FAFC] active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-2xs"
               >
-                <span className="material-symbols-outlined text-sm">edit</span>
+                <span className="material-symbols-outlined text-[16px]">edit</span>
                 Edit
               </button>
               <button
+                type="button"
                 onClick={() => setDeleteTarget(selectedExpense)}
-                className="flex-1 py-3 rounded-full border border-[#ffdad6] bg-[#ffdad6]/30 text-[#ba1a1a] font-semibold text-body-md hover:bg-[#ffdad6]/60 active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-full bg-rose-50 ring-1 ring-rose-200 text-xs font-bold text-rose-700 hover:bg-rose-100 active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-2xs"
               >
-                <span className="material-symbols-outlined text-sm">delete</span>
+                <span className="material-symbols-outlined text-[16px]">delete</span>
                 Delete
               </button>
             </div>

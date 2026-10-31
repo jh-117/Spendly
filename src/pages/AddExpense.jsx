@@ -55,22 +55,25 @@ export default function AddExpense() {
   };
 
   return (
-    <div className="bg-[#f9f9f9] min-h-screen text-[#1a1c1c] antialiased">
-      {/* Header */}
-      <header className="w-full bg-[#f9f9f9] flex justify-between items-center px-5 py-4 max-w-[768px] mx-auto relative z-40">
-        <button
-          onClick={() => navigate(-1)}
-          className="w-10 h-10 rounded-full bg-[#f3f3f3] flex items-center justify-center hover:opacity-80 transition-opacity"
-        >
-          <span className="material-symbols-outlined text-[#1a1c1c] text-xl">close</span>
-        </button>
-        <h1 className="text-headline-lg-mobile font-bold text-[#181d3a]">
-          {editData ? 'Edit Expense' : 'Add Expense'}
-        </h1>
-        <div className="w-10" />
+    <div className="bg-[#F8FAFC] min-h-screen text-[#0F1424] antialiased">
+      {/* Modern Frosted Header */}
+      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#F8FAFC]/85 border-b border-black/[0.03]">
+        <div className="flex justify-between items-center px-5 py-3.5 max-w-[768px] mx-auto">
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Back"
+            className="w-9 h-9 rounded-full bg-white ring-1 ring-black/[0.06] flex items-center justify-center text-[#64748B] hover:text-[#0F1424] hover:shadow-xs active:scale-95 transition-all"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+          <h1 className="text-base font-bold text-[#0F1424] tracking-tight">
+            {editData ? 'Edit Expense' : 'Add Expense'}
+          </h1>
+          <div className="w-9" />
+        </div>
       </header>
 
-      <main className="max-w-[768px] mx-auto pb-32">
+      <main className="max-w-[768px] mx-auto pb-32 pt-2">
         <ExpenseForm
           initialValues={initialValues}
           categories={categories}

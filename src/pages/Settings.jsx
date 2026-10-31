@@ -126,77 +126,83 @@ export default function Settings() {
   };
 
   return (
-    <div className="bg-[#F8FAFC] min-h-screen text-[#1a1c1c] antialiased">
-      {/* Header */}
-      <header className="bg-[#f9f9f9] w-full top-0 sticky z-40">
-        <div className="flex justify-between items-center px-5 py-4 max-w-[768px] mx-auto">
-          <div className="w-10 h-10 rounded-full bg-[#eeeeee] flex items-center justify-center overflow-hidden">
-            <img src="https://i.pravatar.cc/150?img=47" alt="Profile" className="w-full h-full object-cover" />
+    <div className="bg-[#F8FAFC] min-h-screen text-[#0F1424] antialiased">
+      {/* Modern Frosted Header */}
+      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#F8FAFC]/85 border-b border-black/[0.03]">
+        <div className="flex justify-between items-center px-5 py-3.5 max-w-[768px] mx-auto">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#0F1424] flex items-center justify-center text-white font-bold text-sm shadow-sm ring-1 ring-white/10">
+              S
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base font-bold text-[#0F1424] tracking-tight leading-none">Settings</span>
+              <span className="text-[10px] font-medium text-[#64748B] tracking-wide mt-0.5">Preferences & Data</span>
+            </div>
           </div>
-          <h1 className="text-headline-lg-mobile font-bold text-[#181d3a]">Spendly</h1>
-          <div className="w-10" />
+          <div className="w-8" />
         </div>
       </header>
 
-      <main className="w-full max-w-[768px] mx-auto px-5 pb-32 pt-2 flex flex-col gap-6">
-        {/* Title */}
-        <div className="mb-2">
-          <h2 className="text-display-hero text-[#181d3a]">Settings</h2>
-        </div>
-
-        {/* Profile */}
-        <section className="bg-white rounded-2xl p-6 border border-[#e2e2e2] flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-[#f3f3f3] flex items-center justify-center overflow-hidden flex-shrink-0">
-            <img src="https://i.pravatar.cc/150?img=47" alt="Profile" className="w-full h-full object-cover" />
+      <main className="w-full max-w-[768px] mx-auto px-5 pb-36 pt-3 flex flex-col gap-5">
+        {/* Profile Card */}
+        <section className="bg-white rounded-[24px] p-5 ring-1 ring-black/[0.05] shadow-2xs flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-[#0F1424] text-white flex items-center justify-center font-bold text-xl ring-1 ring-white/10 shadow-sm flex-shrink-0">
+            J
           </div>
-          <div className="flex-1">
-            <h3 className="text-headline-lg-mobile text-[#181d3a]">Jiahuey</h3>
-            <p className="text-body-sm text-[#64748B]">Personal Account</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-bold text-[#0F1424] tracking-tight truncate">Jiahuey</h3>
+            <p className="text-xs text-[#64748B] font-medium">Personal Finance Ledger</p>
           </div>
         </section>
 
         {/* General */}
-        <section className="bg-white rounded-2xl p-6 border border-[#e2e2e2] flex flex-col gap-6">
-          <h3 className="text-label-caps text-[#64748B] uppercase">General</h3>
+        <section className="bg-white rounded-[26px] p-6 ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)] flex flex-col gap-6">
+          <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-wider">General</h3>
+          
           {/* Currency — disabled */}
           <div className="flex justify-between items-center">
-            <span className="text-body-md text-[#1a1c1c]">Currency</span>
-            <div className="flex items-center gap-2 text-[#64748B] bg-[#f3f3f3] px-3 py-1.5 rounded-lg cursor-not-allowed">
-              <span className="text-body-md">MYR</span>
-              <span className="material-symbols-outlined text-[18px]">lock</span>
+            <div>
+              <span className="text-sm font-bold text-[#0F1424] block">Base Currency</span>
+              <span className="text-xs text-[#64748B]">Default currency used for all records</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[#64748B] bg-[#F1F5F9] px-3 py-1.5 rounded-full ring-1 ring-black/[0.04] cursor-not-allowed">
+              <span className="text-xs font-bold text-[#0F1424]">MYR</span>
+              <span className="material-symbols-outlined text-[15px]">lock</span>
             </div>
           </div>
+
           {/* Monthly Budget */}
-          <div className="flex flex-col gap-3">
-            <label className="text-body-md text-[#1a1c1c]">Monthly Budget</label>
-            <div className="flex items-center gap-4">
-              <div className="flex-1 border-b border-[#e2e2e2] pb-2 focus-within:border-[#181d3a] transition-colors">
-                <span className="text-[#64748B] mr-1 text-body-md">RM</span>
+          <div className="flex flex-col gap-3 pt-4 border-t border-[#F8FAFC]">
+            <label className="text-sm font-bold text-[#0F1424]">Monthly Budget Limit</label>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 flex items-baseline gap-1.5 bg-[#F8FAFC] rounded-2xl px-4 py-2 ring-1 ring-black/[0.05] focus-within:ring-2 focus-within:ring-[#0F1424] transition-all">
+                <span className="text-xs font-bold text-[#64748B]">RM</span>
                 <input
                   type="text"
                   inputMode="decimal"
                   value={budgetInput}
                   onChange={e => { setBudgetInput(e.target.value); setBudgetError(''); }}
-                  placeholder="0"
-                  className="w-2/3 bg-transparent border-none focus:ring-0 p-0 text-[32px] text-[#181d3a] font-semibold outline-none"
+                  placeholder="0.00"
+                  className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl sm:text-2xl text-[#0F1424] font-bold outline-none tabular-nums"
                 />
               </div>
               <button
+                type="button"
                 onClick={handleSaveBudget}
-                className="bg-[#181d3a] text-white text-body-sm px-6 py-3 rounded-full hover:opacity-90 active:scale-95 transition-all shadow-sm"
+                className="bg-[#0F1424] text-white text-xs font-bold px-5 py-3 rounded-xl hover:bg-[#181D3A] active:scale-95 transition-all shadow-xs"
               >
                 Save
               </button>
             </div>
-            {budgetError && <p className="text-[#ba1a1a] text-body-sm">{budgetError}</p>}
+            {budgetError && <p className="text-rose-600 text-xs font-semibold">{budgetError}</p>}
           </div>
 
           {/* Salary & Billing Cycle */}
-          <div className="flex flex-col gap-3 pt-4 border-t border-[#f3f3f3]">
+          <div className="flex flex-col gap-3 pt-4 border-t border-[#F8FAFC]">
             <div className="flex justify-between items-center gap-4">
               <div>
-                <label className="text-body-md text-[#1a1c1c] font-medium block">Salary / Cycle Start Day</label>
-                <span className="text-body-sm text-[#64748B] block mt-0.5">
+                <label className="text-sm font-bold text-[#0F1424] block">Salary / Cycle Start Day</label>
+                <span className="text-xs text-[#64748B] block mt-0.5">
                   {settings.cycleStartDay === 1
                     ? 'Tracks by standard calendar month (1st – End)'
                     : `Tracks from ${settings.cycleStartDay}th to ${settings.cycleStartDay - 1}th of following month`}
@@ -481,36 +487,42 @@ export default function Settings() {
         </section>
 
         {/* Manage Categories */}
-        <section className="bg-white rounded-2xl p-6 border border-[#e2e2e2]">
+        <section className="bg-white rounded-[24px] p-5 ring-1 ring-black/[0.05] shadow-2xs">
           <button
+            type="button"
             onClick={() => navigate('/categories')}
-            className="flex justify-between items-center w-full group active:opacity-70 transition-opacity"
+            className="flex justify-between items-center w-full group active:scale-[0.99] transition-all"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#dee1ff]/50 text-[#181d3a] flex items-center justify-center">
-                <span className="material-symbols-outlined">category</span>
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center ring-1 ring-indigo-200/50">
+                <span className="material-symbols-outlined text-[22px]">category</span>
               </div>
-              <span className="text-body-md text-[#1a1c1c] font-medium">Manage Categories</span>
+              <div className="text-left">
+                <span className="text-sm font-bold text-[#0F1424] block">Manage Categories</span>
+                <span className="text-xs text-[#64748B]">Custom icons, limits & active state</span>
+              </div>
             </div>
-            <span className="material-symbols-outlined text-[#64748B] group-hover:text-[#181d3a] transition-colors">chevron_right</span>
+            <span className="material-symbols-outlined text-[#94A3B8] group-hover:text-[#0F1424] transition-colors">chevron_right</span>
           </button>
         </section>
 
         {/* Data & Privacy */}
-        <section className="bg-white rounded-2xl p-6 border border-[#e2e2e2] flex flex-col gap-4">
-          <h3 className="text-label-caps text-[#64748B] uppercase">Data & Privacy</h3>
+        <section className="bg-white rounded-[26px] p-6 ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)] flex flex-col gap-4">
+          <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Data & Privacy</h3>
           <button
+            type="button"
             onClick={handleExport}
-            className="w-full flex items-center justify-center gap-2 border border-[#77767e] text-[#181d3a] font-semibold text-body-md py-3.5 rounded-full hover:bg-[#f3f3f3] active:scale-95 transition-all"
+            className="w-full flex items-center justify-center gap-2 bg-white ring-1 ring-black/[0.08] text-[#0F1424] font-bold text-xs py-3.5 rounded-full hover:bg-[#F8FAFC] active:scale-95 transition-all shadow-2xs"
           >
-            <span className="material-symbols-outlined text-[20px]">download</span>
+            <span className="material-symbols-outlined text-[18px]">download</span>
             Export CSV
           </button>
           <button
+            type="button"
             onClick={() => setShowClearDialog(true)}
-            className="w-full flex items-center justify-center gap-2 border border-[#ffdad6] text-[#ba1a1a] bg-[#ffdad6]/20 font-semibold text-body-md py-3.5 rounded-full hover:bg-[#ffdad6]/40 active:scale-95 transition-all"
+            className="w-full flex items-center justify-center gap-2 bg-rose-50 ring-1 ring-rose-200 text-rose-700 font-bold text-xs py-3.5 rounded-full hover:bg-rose-100 active:scale-95 transition-all shadow-2xs"
           >
-            <span className="material-symbols-outlined text-[20px]">delete_forever</span>
+            <span className="material-symbols-outlined text-[18px]">delete_forever</span>
             Clear All Data
           </button>
         </section>

@@ -62,35 +62,39 @@ export default function ExpenseForm({
 
   return (
     <div className="flex flex-col">
-      {/* Amount */}
-      <section className="py-8 flex flex-col items-center justify-center">
+      {/* Amount Hero Section */}
+      <section className="py-6 px-5 flex flex-col items-center justify-center">
         <AmountInput value={amount} onChange={setAmount} />
         {errors.amount && (
-          <p className="text-[#ba1a1a] text-body-sm mt-2">{errors.amount}</p>
+          <p className="text-rose-600 text-xs font-semibold mt-2">{errors.amount}</p>
         )}
-        {/* Date picker */}
-        <div className="mt-4 flex items-center gap-2">
-          <div className="px-4 py-2 bg-[#f3f3f3] rounded-full flex items-center gap-2 cursor-pointer hover:bg-[#eeeeee] transition-colors">
-            <span className="material-symbols-outlined text-sm text-[#64748B]">today</span>
+
+        {/* Date Selector Pill */}
+        <div className="mt-5 flex items-center gap-2">
+          <label className="px-3.5 py-1.5 bg-white ring-1 ring-black/[0.06] rounded-full flex items-center gap-2 cursor-pointer hover:bg-[#F8FAFC] shadow-2xs transition-all active:scale-95">
+            <span className="material-symbols-outlined text-[16px] text-indigo-600">calendar_today</span>
             <input
               type="date"
               value={expenseDate}
               max={TODAY}
               onChange={e => setExpenseDate(e.target.value)}
-              className="bg-transparent border-none text-body-sm text-[#64748B] focus:outline-none cursor-pointer"
+              className="bg-transparent border-none text-xs font-semibold text-[#0F1424] focus:outline-none cursor-pointer p-0"
             />
-          </div>
+          </label>
         </div>
         {errors.date && (
-          <p className="text-[#ba1a1a] text-body-sm mt-1">{errors.date}</p>
+          <p className="text-rose-600 text-xs font-semibold mt-1">{errors.date}</p>
         )}
       </section>
 
-      {/* Category */}
+      {/* Category Section */}
       <section className="px-5 mb-6">
-        <h2 className="text-label-caps text-[#64748B] mb-4 uppercase tracking-wider">Category</h2>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <h2 className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Select Category</h2>
+          <span className="text-[11px] text-[#94A3B8]">Required</span>
+        </div>
         {errors.category && (
-          <p className="text-[#ba1a1a] text-body-sm mb-2">{errors.category}</p>
+          <p className="text-rose-600 text-xs font-semibold mb-2 px-1">{errors.category}</p>
         )}
         <CategoryPicker
           categories={categories}
@@ -100,69 +104,82 @@ export default function ExpenseForm({
         />
       </section>
 
-      {/* More Options */}
-      <section className="px-5 mb-6">
+      {/* More Options Section */}
+      <section className="px-5 mb-8">
         <button
+          type="button"
           onClick={() => setShowMore(!showMore)}
-          className="flex items-center gap-2 text-[#181d3a] hover:opacity-80 transition-opacity w-full py-2"
+          className="flex items-center justify-between w-full p-4 rounded-[20px] bg-white ring-1 ring-black/[0.05] shadow-2xs hover:bg-[#F8FAFC] transition-all"
         >
+          <div className="flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-[18px] text-[#64748B]">tune</span>
+            <span className="text-xs font-bold text-[#0F1424]">Notes & Payment Method</span>
+          </div>
           <span
-            className="material-symbols-outlined text-lg transition-transform duration-200"
+            className="material-symbols-outlined text-[18px] text-[#64748B] transition-transform duration-200"
             style={{ transform: showMore ? 'rotate(180deg)' : 'rotate(0deg)' }}
           >
             expand_more
           </span>
-          <span className="text-body-md font-semibold">More options</span>
         </button>
 
         {showMore && (
-          <div className="mt-4 space-y-4">
+          <div className="mt-3 space-y-3">
             {/* Description */}
-            <div className="bg-white rounded-2xl p-4 border border-[#e2e2e2]">
-              <label className="block text-label-caps text-[#64748B] mb-2 uppercase">Description</label>
+            <div className="bg-white rounded-[22px] p-4 ring-1 ring-black/[0.05] shadow-2xs">
+              <label className="block text-[11px] font-bold text-[#64748B] mb-2 uppercase tracking-wider">
+                Note / Description
+              </label>
               <input
                 type="text"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="What was this for?"
-                className="w-full bg-transparent border-none p-0 focus:ring-0 text-body-md text-[#1a1c1c] placeholder:text-[#dadada] outline-none"
+                placeholder="What was this expense for?"
+                className="w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-medium text-[#0F1424] placeholder:text-[#cbd5e1] outline-none"
               />
             </div>
 
             {/* Payment Method */}
-            <div className="bg-white rounded-2xl p-4 border border-[#e2e2e2]">
-              <label className="block text-label-caps text-[#64748B] mb-3 uppercase">Payment Method</label>
+            <div className="bg-white rounded-[22px] p-4 ring-1 ring-black/[0.05] shadow-2xs">
+              <label className="block text-[11px] font-bold text-[#64748B] mb-2.5 uppercase tracking-wider">
+                Payment Method
+              </label>
               <div className="flex flex-wrap gap-2">
-                {PAYMENT_METHODS.map(pm => (
-                  <button
-                    key={pm.value}
-                    onClick={() => setPaymentMethod(paymentMethod === pm.value ? '' : pm.value)}
-                    className={`px-4 py-2 rounded-lg text-body-sm flex items-center gap-2 transition-colors ${
-                      paymentMethod === pm.value
-                        ? 'bg-[#dee1ff] text-[#11183d] font-semibold'
-                        : 'bg-[#f3f3f3] text-[#46464d] hover:bg-[#eeeeee] border border-[#e2e2e2]'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm">{pm.icon}</span>
-                    {pm.label}
-                  </button>
-                ))}
+                {PAYMENT_METHODS.map(pm => {
+                  const isSelected = paymentMethod === pm.value;
+                  return (
+                    <button
+                      key={pm.value}
+                      type="button"
+                      onClick={() => setPaymentMethod(isSelected ? '' : pm.value)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 ${
+                        isSelected
+                          ? 'bg-[#0F1424] text-white shadow-xs'
+                          : 'bg-[#F8FAFC] text-[#64748B] ring-1 ring-black/[0.05] hover:bg-[#F1F5F9]'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[15px]">{pm.icon}</span>
+                      <span>{pm.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
         )}
       </section>
 
-      {/* Save Button */}
-      <div className="fixed bottom-0 left-0 w-full p-5 bg-gradient-to-t from-[#f9f9f9] via-[#f9f9f9]/90 to-transparent z-40">
+      {/* Floating Save Button */}
+      <div className="fixed bottom-0 left-0 w-full p-5 backdrop-blur-md bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/90 to-transparent z-40">
         <div className="max-w-[768px] mx-auto">
           <button
+            type="button"
             onClick={handleSave}
             disabled={!canSave || isSaving}
-            className="w-full bg-[#181d3a] text-white text-headline-lg-mobile py-4 rounded-full shadow-lg shadow-[#181d3a]/20 hover:opacity-90 active:scale-95 transition-all duration-200 flex justify-center items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-[#0F1424] to-[#1E2746] text-white text-base font-bold py-4 rounded-full shadow-[0_12px_24px_-6px_rgba(15,20,36,0.35)] hover:opacity-95 active:scale-[0.98] transition-all flex justify-center items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
-            <span className="material-symbols-outlined">check</span>
-            {isSaving ? 'Saving…' : 'Save Expense'}
+            <span className="material-symbols-outlined text-[20px]">check</span>
+            <span>{isSaving ? 'Saving…' : 'Save Expense'}</span>
           </button>
         </div>
       </div>
