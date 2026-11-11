@@ -22,6 +22,7 @@ export default function Settings() {
   const {
     recurringExpenses,
     addRecurringExpense,
+    updateRecurringExpense,
     deleteRecurringExpense,
     toggleRecurringExpense,
   } = useRecurringExpenses();
@@ -42,6 +43,7 @@ export default function Settings() {
 
   // Recurring form state
   const [showRecurringForm, setShowRecurringForm] = useState(false);
+  const [editingRecurringId, setEditingRecurringId] = useState(null);
   const [recDesc, setRecDesc] = useState('');
   const [recAmount, setRecAmount] = useState('');
   const [recCategory, setRecCategory] = useState('bills');
@@ -54,7 +56,28 @@ export default function Settings() {
     return acc;
   }, {});
 
-  const handleAddRecurring = async () => {
+  const handleStartEditRecurring = (item) => {
+    setEditingRecurringId(item.id);
+    setRecDesc(item.description);
+    setRecAmount(fromCents(item.amountInCents));
+    setRecCategory(item.categoryId);
+    setRecDay(item.dayOfMonth);
+    setRecPayment(item.paymentMethod || 'debit');
+    setRecError('');
+    setShowRecurringForm(true);
+  };
+
+  const handleCancelRecurringForm = () => {
+    setShowRecurringForm(false);
+    setEditingRecurringId(null);
+    setRecDesc('');
+    setRecAmount('');
+    setRecDay(1);
+    setRecPayment('debit');
+    setRecError('');
+  };
+
+  const handleSaveRecurring = async () => {
     if (!recDesc.trim()) {
       setRecError('Please enter a description');
       return;
@@ -65,17 +88,28 @@ export default function Settings() {
       return;
     }
     setRecError('');
-    await addRecurringExpense({
-      amountInCents: toCents(recAmount),
-      categoryId: recCategory,
-      description: recDesc.trim(),
-      paymentMethod: recPayment,
-      dayOfMonth: recDay,
-    });
-    setRecDesc('');
-    setRecAmount('');
-    setShowRecurringForm(false);
-    showToast('Recurring expense added ✓');
+
+    if (editingRecurringId) {
+      await updateRecurringExpense(editingRecurringId, {
+        amountInCents: toCents(recAmount),
+        categoryId: recCategory,
+        description: recDesc.trim(),
+        paymentMethod: recPayment,
+        dayOfMonth: recDay,
+      });
+      showToast('Recurring expense updated ✓');
+    } else {
+      await addRecurringExpense({
+        amountInCents: toCents(recAmount),
+        categoryId: recCategory,
+        description: recDesc.trim(),
+        paymentMethod: recPayment,
+        dayOfMonth: recDay,
+      });
+      showToast('Recurring expense added ✓');
+    }
+
+    handleCancelRecurringForm();
   };
 
   const handleDeleteRecurringClick = (item) => {
@@ -215,7 +249,7 @@ export default function Settings() {
                   updateSettings({ cycleStartDay: val });
                   showToast(`Cycle updated to day ${val} ✓`);
                 }}
-                className="bg-[#f3f3f3] border-none rounded-xl text-body-md font-semibold text-[#181d3a] px-3.5 py-2.5 focus:ring-1 focus:ring-[#181d3a] outline-none cursor-pointer flex-shrink-0"
+                className="bg-[#F8FAFC] ring-1 ring-black/[0.08] rounded-xl text-sm font-semibold text-[#0F1424] px-3.5 py-2.5 focus:ring-2 focus:ring-[#0F1424] outline-none cursor-pointer flex-shrink-0"
               >
                 <option value={1}>1st (Calendar Month)</option>
                 {Array.from({ length: 27 }, (_, i) => i + 2).map(day => (
@@ -227,9 +261,9 @@ export default function Settings() {
             </div>
 
             {settings.cycleStartDay !== 1 && (
-              <div className="flex justify-between items-center bg-[#f8fafc] p-3 rounded-xl border border-[#e2e2e2]">
+              <div className="flex justify-between items-center bg-[#F8FAFC] p-3.5 rounded-2xl ring-1 ring-black/[0.04]">
                 <div>
-                  <span className="text-body-sm text-[#1a1c1c] font-medium block">
+                  <span className="text-sm font-semibold text-[#0F1424] block">
                     Weekend Payday Adjustment
                   </span>
                   <span className="text-[11px] text-[#64748B] block mt-0.5">
@@ -242,32 +276,32 @@ export default function Settings() {
                     updateSettings({ adjustWeekendPayday: newVal });
                     showToast(newVal ? 'Weekend adjustment enabled ✓' : 'Weekend adjustment disabled');
                   }}
-                  className={`relative w-12 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 ${
-                    settings.adjustWeekendPayday !== false ? 'bg-[#181d3a]' : 'bg-[#e2e2e2]'
+                  className={`relative w-11 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 p-0.5 ${
+                    settings.adjustWeekendPayday !== false ? 'bg-[#0F1424]' : 'bg-[#E2E8F0]'
                   }`}
                 >
                   <span
-                    className={`absolute w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                      settings.adjustWeekendPayday !== false ? 'translate-x-7' : 'translate-x-1'
+                    className={`w-5 h-5 bg-white rounded-full shadow-xs transition-transform duration-300 ${
+                      settings.adjustWeekendPayday !== false ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </button>
               </div>
             )}
 
-            <p className="text-[12px] text-[#64748B] bg-[#f8fafc] p-3 rounded-xl border border-[#e2e2e2] leading-relaxed">
+            <p className="text-[12px] text-[#64748B] bg-[#F8FAFC] p-3.5 rounded-2xl ring-1 ring-black/[0.04] leading-relaxed">
               💡 <strong>Accurate Safe-to-Spend:</strong> When your salary arrives on the 25th, your budget and daily pace will automatically calculate until your next payday instead of the calendar month end.
             </p>
           </div>
         </section>
 
         {/* Daily Check-in */}
-        <section className="bg-white rounded-2xl p-6 border border-[#e2e2e2] flex flex-col gap-4">
-          <h3 className="text-label-caps text-[#64748B] uppercase">Daily Check-in</h3>
+        <section className="bg-white rounded-[26px] p-6 ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)] flex flex-col gap-4">
+          <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Daily Check-in</h3>
           <div className="flex justify-between items-center gap-4">
             <div>
-              <span className="text-body-md text-[#1a1c1c] font-medium block">Check-in Reminder</span>
-              <span className="text-body-sm text-[#64748B] block mt-0.5">
+              <span className="text-sm font-bold text-[#0F1424] block">Check-in Reminder</span>
+              <span className="text-xs text-[#64748B] block mt-0.5">
                 Get prompted to log expenses when you open the app after your set time.
               </span>
             </div>
@@ -277,13 +311,13 @@ export default function Settings() {
                 updateSettings({ reminderEnabled: newVal });
                 showToast(newVal ? 'Check-in enabled ✓' : 'Check-in disabled');
               }}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 ${
-                settings.reminderEnabled ? 'bg-[#181d3a]' : 'bg-[#e2e2e2]'
+              className={`relative w-11 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 p-0.5 ${
+                settings.reminderEnabled ? 'bg-[#0F1424]' : 'bg-[#E2E8F0]'
               }`}
             >
               <span
-                className={`absolute w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
-                  settings.reminderEnabled ? 'translate-x-7' : 'translate-x-1'
+                className={`w-5 h-5 bg-white rounded-full shadow-xs transition-transform duration-300 ${
+                  settings.reminderEnabled ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
             </button>
@@ -291,8 +325,8 @@ export default function Settings() {
 
           {settings.reminderEnabled && (
             <>
-              <div className="flex justify-between items-center pt-3 border-t border-[#f3f3f3]">
-                <span className="text-body-sm text-[#1a1c1c] font-medium">Reminder Time</span>
+              <div className="flex justify-between items-center pt-3 border-t border-black/[0.04]">
+                <span className="text-xs font-semibold text-[#0F1424]">Reminder Time</span>
                 <input
                   type="time"
                   value={settings.reminderTime || '21:00'}
@@ -300,11 +334,11 @@ export default function Settings() {
                     updateSettings({ reminderTime: e.target.value });
                     showToast('Reminder time updated ✓');
                   }}
-                  className="bg-[#f3f3f3] border-none rounded-xl text-body-md font-semibold text-[#181d3a] px-3.5 py-2 focus:ring-1 focus:ring-[#181d3a] outline-none cursor-pointer"
+                  className="bg-[#F8FAFC] ring-1 ring-black/[0.08] rounded-xl text-sm font-semibold text-[#0F1424] px-3.5 py-2 focus:ring-2 focus:ring-[#0F1424] outline-none cursor-pointer"
                 />
               </div>
 
-              <p className="text-[12px] text-[#64748B] bg-[#f8fafc] p-3 rounded-xl border border-[#e2e2e2] leading-relaxed">
+              <p className="text-[12px] text-[#64748B] bg-[#F8FAFC] p-3.5 rounded-2xl ring-1 ring-black/[0.04] leading-relaxed">
                 💡 <strong>App-open check:</strong> This prompts you when you open Spendly after your set time — not a background push notification. Open the app daily to keep your streak!
               </p>
             </>
@@ -312,16 +346,26 @@ export default function Settings() {
         </section>
 
         {/* Recurring & Fixed Expenses */}
-        <section className="bg-white rounded-2xl p-6 border border-[#e2e2e2] flex flex-col gap-4">
+        <section className="bg-white rounded-[26px] p-6 ring-1 ring-black/[0.05] shadow-[0_2px_12px_-2px_rgba(0,0,0,0.03)] flex flex-col gap-4">
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-label-caps text-[#64748B] uppercase">Recurring & Fixed Expenses</h3>
-              <p className="text-body-sm text-[#64748B] mt-0.5">Auto-records subscriptions and bills on due day</p>
+              <h3 className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Recurring & Fixed Expenses</h3>
+              <p className="text-xs text-[#64748B] mt-0.5">Auto-records subscriptions and bills on due day</p>
             </div>
             {!showRecurringForm && (
               <button
-                onClick={() => { setShowRecurringForm(true); setRecError(''); }}
-                className="bg-[#181d3a] text-white text-xs font-semibold px-3 py-1.5 rounded-full hover:opacity-90 active:scale-95 transition-all flex items-center gap-1"
+                type="button"
+                onClick={() => {
+                  setEditingRecurringId(null);
+                  setRecDesc('');
+                  setRecAmount('');
+                  setRecCategory('bills');
+                  setRecDay(1);
+                  setRecPayment('debit');
+                  setRecError('');
+                  setShowRecurringForm(true);
+                }}
+                className="bg-[#0F1424] text-white text-xs font-bold px-3.5 py-1.5 rounded-full hover:bg-[#181D3A] active:scale-95 transition-all flex items-center gap-1 shadow-2xs"
               >
                 <span className="material-symbols-outlined text-[16px]">add</span>
                 Add
@@ -329,10 +373,17 @@ export default function Settings() {
             )}
           </div>
 
-          {/* Inline Add Recurring Form */}
+          {/* Inline Add/Edit Recurring Form */}
           {showRecurringForm && (
-            <div className="bg-[#F8FAFC] border border-[#e2e2e2] rounded-xl p-4 flex flex-col gap-3">
-              <span className="text-xs font-bold text-[#181d3a] uppercase">New Recurring Expense</span>
+            <div className="bg-[#F8FAFC] ring-1 ring-black/[0.06] rounded-[20px] p-4 flex flex-col gap-3 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#0F1424] uppercase tracking-wider">
+                  {editingRecurringId ? 'Edit Recurring Expense' : 'New Recurring Expense'}
+                </span>
+                <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
+                  {editingRecurringId ? 'Editing' : 'Auto-log'}
+                </span>
+              </div>
 
               <div className="flex flex-col gap-1">
                 <input
@@ -340,28 +391,28 @@ export default function Settings() {
                   placeholder="e.g. Netflix, Spotify, Rent"
                   value={recDesc}
                   onChange={e => setRecDesc(e.target.value)}
-                  className="bg-white border border-[#cbd5e1] rounded-lg px-3 py-2 text-body-sm text-[#1a1c1c] focus:outline-none focus:border-[#181d3a]"
+                  className="bg-white ring-1 ring-black/[0.06] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-medium text-[#0F1424] focus:outline-none focus:ring-2 focus:ring-[#0F1424]"
                   autoFocus
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-1.5 bg-white border border-[#cbd5e1] rounded-lg px-3 py-2">
-                  <span className="text-xs text-[#64748B] font-semibold">RM</span>
+                <div className="flex items-center gap-1.5 bg-white ring-1 ring-black/[0.06] rounded-xl px-3.5 py-2">
+                  <span className="text-xs text-[#64748B] font-bold">RM</span>
                   <input
                     type="text"
                     inputMode="decimal"
                     placeholder="0.00"
                     value={recAmount}
                     onChange={e => setRecAmount(e.target.value)}
-                    className="w-full text-body-sm text-[#181d3a] font-semibold bg-transparent border-none outline-none"
+                    className="w-full text-xs sm:text-sm text-[#0F1424] font-bold bg-transparent border-none outline-none tabular-nums"
                   />
                 </div>
 
                 <select
                   value={recCategory}
                   onChange={e => setRecCategory(e.target.value)}
-                  className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-2 text-body-sm text-[#1a1c1c] outline-none"
+                  className="bg-white ring-1 ring-black/[0.06] rounded-xl px-3 py-2 text-xs sm:text-sm text-[#0F1424] font-semibold outline-none cursor-pointer"
                 >
                   {categories.filter(c => c.isActive).map(c => (
                     <option key={c.id} value={c.id}>
@@ -373,11 +424,11 @@ export default function Settings() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[11px] text-[#64748B]">Due day of month</span>
+                  <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Due day of month</span>
                   <select
                     value={recDay}
                     onChange={e => setRecDay(parseInt(e.target.value, 10))}
-                    className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-2 text-body-sm text-[#1a1c1c] outline-none"
+                    className="bg-white ring-1 ring-black/[0.06] rounded-xl px-3 py-2 text-xs font-semibold text-[#0F1424] outline-none cursor-pointer"
                   >
                     {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
                       <option key={d} value={d}>
@@ -388,11 +439,11 @@ export default function Settings() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <span className="text-[11px] text-[#64748B]">Payment method</span>
+                  <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">Payment method</span>
                   <select
                     value={recPayment}
                     onChange={e => setRecPayment(e.target.value)}
-                    className="bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-2 text-body-sm text-[#1a1c1c] outline-none"
+                    className="bg-white ring-1 ring-black/[0.06] rounded-xl px-3 py-2 text-xs font-semibold text-[#0F1424] outline-none cursor-pointer"
                   >
                     {PAYMENT_METHODS.map(m => (
                       <option key={m.value} value={m.value}>
@@ -403,20 +454,22 @@ export default function Settings() {
                 </div>
               </div>
 
-              {recError && <p className="text-[#ba1a1a] text-xs">{recError}</p>}
+              {recError && <p className="text-rose-600 text-xs font-semibold">{recError}</p>}
 
               <div className="flex gap-2 pt-1">
                 <button
-                  onClick={() => setShowRecurringForm(false)}
-                  className="flex-1 py-2 text-xs font-semibold text-[#64748B] bg-white border border-[#cbd5e1] rounded-lg hover:bg-[#f3f3f3]"
+                  type="button"
+                  onClick={handleCancelRecurringForm}
+                  className="flex-1 py-2.5 text-xs font-bold text-[#64748B] bg-white ring-1 ring-black/[0.06] rounded-xl hover:bg-[#F8FAFC] active:scale-95 transition-all shadow-2xs"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleAddRecurring}
-                  className="flex-1 py-2 text-xs font-semibold text-white bg-[#181d3a] rounded-lg hover:opacity-90 active:scale-95 transition-all"
+                  type="button"
+                  onClick={handleSaveRecurring}
+                  className="flex-1 py-2.5 text-xs font-bold text-white bg-[#0F1424] rounded-xl hover:bg-[#181D3A] active:scale-95 transition-all shadow-xs"
                 >
-                  Save Recurring
+                  {editingRecurringId ? 'Update Recurring' : 'Save Recurring'}
                 </button>
               </div>
             </div>
@@ -424,7 +477,7 @@ export default function Settings() {
 
           {/* List of Recurring Expenses */}
           {recurringExpenses.length === 0 ? (
-            <p className="text-body-sm text-[#64748B] italic py-2 text-center bg-[#f8fafc] rounded-xl border border-dashed border-[#cbd5e1]">
+            <p className="text-xs text-[#64748B] italic py-4 text-center bg-[#F8FAFC] rounded-[18px] ring-1 ring-black/[0.04]">
               No recurring expenses set up yet.
             </p>
           ) : (
@@ -434,34 +487,35 @@ export default function Settings() {
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                    className={`flex items-center justify-between p-3.5 rounded-[18px] transition-all ring-1 ${
                       item.isActive
-                        ? 'bg-white border-[#e2e2e2]'
-                        : 'bg-[#f8fafc] border-[#e2e2e2] opacity-50'
+                        ? 'bg-white ring-black/[0.05] shadow-2xs'
+                        : 'bg-[#F8FAFC] ring-black/[0.03] opacity-60'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#f3f3f3] flex items-center justify-center text-xl flex-shrink-0">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-[14px] bg-[#F1F5F9] ring-1 ring-black/[0.04] flex items-center justify-center text-xl flex-shrink-0">
                         {cat?.icon || '🔁'}
                       </div>
-                      <div>
-                        <h4 className="text-body-md font-semibold text-[#1a1c1c] leading-tight">
+                      <div className="min-w-0">
+                        <h4 className="text-xs sm:text-sm font-bold text-[#0F1424] leading-tight truncate">
                           {item.description}
                         </h4>
-                        <p className="text-[11px] text-[#64748B] mt-0.5">
+                        <p className="text-[11px] text-[#64748B] mt-0.5 truncate">
                           Day {item.dayOfMonth} each month • {cat?.name || 'General'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="text-body-md font-bold text-[#181d3a]">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 ml-2">
+                      <span className="text-xs sm:text-sm font-black text-[#0F1424] tabular-nums tracking-tight">
                         {formatCurrency(item.amountInCents)}
                       </span>
                       <button
+                        type="button"
                         onClick={() => toggleRecurringExpense(item.id)}
                         className={`w-9 h-5 rounded-full transition-colors relative flex items-center flex-shrink-0 ${
-                          item.isActive ? 'bg-[#181d3a]' : 'bg-[#cbd5e1]'
+                          item.isActive ? 'bg-[#0F1424]' : 'bg-[#cbd5e1]'
                         }`}
                         title={item.isActive ? 'Active' : 'Paused'}
                       >
@@ -472,11 +526,20 @@ export default function Settings() {
                         />
                       </button>
                       <button
+                        type="button"
+                        onClick={() => handleStartEditRecurring(item)}
+                        className="w-7 h-7 rounded-full bg-[#F1F5F9] text-[#64748B] hover:text-[#0F1424] hover:bg-[#E2E8F0] flex items-center justify-center transition-all"
+                        title="Edit recurring expense"
+                      >
+                        <span className="material-symbols-outlined text-[15px]">edit</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleDeleteRecurringClick(item)}
-                        className="text-[#94a3b8] hover:text-[#ba1a1a] transition-colors p-1"
+                        className="w-7 h-7 rounded-full bg-[#F1F5F9] text-[#94A3B8] hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-all"
                         title="Delete recurring item"
                       >
-                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                        <span className="material-symbols-outlined text-[15px]">delete</span>
                       </button>
                     </div>
                   </div>

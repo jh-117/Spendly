@@ -30,7 +30,7 @@ export default function CategoryPicker({ categories, selectedId, onSelect, frequ
             className={`relative flex flex-col items-center justify-center p-3 rounded-[18px] transition-all focus:outline-none active:scale-95 min-h-[76px] ${
               isSelected
                 ? 'bg-[#0F1424] text-white shadow-md ring-2 ring-[#0F1424] scale-[1.02]'
-                : 'bg-white text-[#46464d] ring-1 ring-black/[0.06] hover:bg-[#F8FAFC] shadow-2xs'
+                : 'bg-white text-[#0F1424] ring-1 ring-black/[0.06] hover:bg-[#F8FAFC] shadow-2xs'
             }`}
           >
             {isFrequent && !isSelected && (

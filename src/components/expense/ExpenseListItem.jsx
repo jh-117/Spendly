@@ -72,9 +72,18 @@ export default function ExpenseListItem({
       </div>
 
       <div className="flex items-center gap-3 flex-shrink-0 ml-3">
-        <span className="text-sm sm:text-base font-bold text-[#0F1424] tabular-nums tracking-tight">
-          {formatCurrency(expense.amountInCents)}
-        </span>
+        <div className="flex flex-col items-end">
+          <span className={`text-sm sm:text-base font-bold tabular-nums tracking-tight ${
+            expense.isClaimed ? 'text-[#94A3B8] line-through' : 'text-[#0F1424]'
+          }`}>
+            {formatCurrency(expense.amountInCents)}
+          </span>
+          {expense.isClaimed && (
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 ring-1 ring-emerald-200/60 px-1.5 py-0.5 rounded-full mt-0.5">
+              Claimed
+            </span>
+          )}
+        </div>
         {!isSelectable && showRepeat && onRepeat && (
           <button
             aria-label="Repeat expense"

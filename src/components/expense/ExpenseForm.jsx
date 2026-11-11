@@ -31,7 +31,8 @@ export default function ExpenseForm({
   const [description, setDescription] = useState(initialValues.description || '');
   const [paymentMethod, setPaymentMethod] = useState(initialValues.paymentMethod || '');
   const [expenseDate, setExpenseDate] = useState(initialValues.expenseDate || TODAY);
-  const [showMore, setShowMore] = useState(!!(initialValues.description || initialValues.paymentMethod));
+  const [isClaimed, setIsClaimed] = useState(Boolean(initialValues.isClaimed));
+  const [showMore, setShowMore] = useState(Boolean(initialValues.description || initialValues.paymentMethod || initialValues.isClaimed));
   const [errors, setErrors] = useState({});
 
   const frequentIds = getFrequentCategories(allExpenses, 4);
@@ -57,6 +58,7 @@ export default function ExpenseForm({
       description: description.trim(),
       paymentMethod: paymentMethod || null,
       expenseDate,
+      isClaimed,
     });
   };
 
@@ -125,6 +127,38 @@ export default function ExpenseForm({
 
         {showMore && (
           <div className="mt-3 space-y-3">
+            {/* Claimed / Reimbursed Switch */}
+            <div className="bg-white rounded-[22px] p-4 ring-1 ring-black/[0.05] shadow-2xs flex items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[#0F1424]">Claimed / Reimbursed</span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
+                    isClaimed
+                      ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                      : 'bg-[#F1F5F9] text-[#64748B]'
+                  }`}>
+                    {isClaimed ? 'Settled / Repaid' : 'Paid for others'}
+                  </span>
+                </div>
+                <span className="text-[11px] text-[#64748B] block mt-1 leading-snug">
+                  Check if someone already transferred money back. Excludes this from your personal spend and budget.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsClaimed(prev => !prev)}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 flex items-center flex-shrink-0 ${
+                  isClaimed ? 'bg-[#0F1424]' : 'bg-[#E2E8F0]'
+                }`}
+              >
+                <span
+                  className={`absolute w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+                    isClaimed ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
             {/* Description */}
             <div className="bg-white rounded-[22px] p-4 ring-1 ring-black/[0.05] shadow-2xs">
               <label className="block text-[11px] font-bold text-[#64748B] mb-2 uppercase tracking-wider">

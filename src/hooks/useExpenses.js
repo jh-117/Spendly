@@ -4,13 +4,25 @@ import { supabase } from '../lib/supabase';
 
 // Map DB snake_case row → JS camelCase object
 function fromRow(row) {
+  const rawDesc = row.description || '';
+  const isClaimed = Boolean(
+    row.is_claimed ||
+    rawDesc.startsWith('[Claimed] ') ||
+    rawDesc === '[Claimed]'
+  );
+  const cleanDesc = rawDesc.startsWith('[Claimed] ')
+    ? rawDesc.slice(10)
+    : (rawDesc === '[Claimed]' ? '' : rawDesc);
+
   return {
     id: row.id,
     amountInCents: Number(row.amount_in_cents),
     categoryId: row.category_id,
-    description: row.description || '',
+    description: cleanDesc,
+    rawDescription: rawDesc,
     paymentMethod: row.payment_method || null,
     expenseDate: row.expense_date,
+    isClaimed,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -66,12 +78,15 @@ export function useExpenses() {
     };
   }, [fetchExpenses]);
 
-  const addExpense = useCallback(async ({ amountInCents, categoryId, description, paymentMethod, expenseDate }) => {
+  const addExpense = useCallback(async ({ amountInCents, categoryId, description, paymentMethod, expenseDate, isClaimed = false }) => {
     const now = new Date().toISOString();
+    const cleanDesc = (description || '').trim();
+    const finalDesc = isClaimed ? `[Claimed] ${cleanDesc}`.trim() : cleanDesc;
+
     const row = {
       amount_in_cents: amountInCents,
       category_id: categoryId,
-      description: description || '',
+      description: finalDesc,
       payment_method: paymentMethod || null,
       expense_date: expenseDate || format(new Date(), 'yyyy-MM-dd'),
       created_at: now,
@@ -92,10 +107,23 @@ export function useExpenses() {
   }, []);
 
   const updateExpense = useCallback(async (id, changes) => {
-    const updates = { updated_at: new Date().toISOString() };
+    const current = expenses.find(e => e.id === id);
+    const isClaimed = changes.isClaimed !== undefined
+      ? Boolean(changes.isClaimed)
+      : Boolean(current?.isClaimed);
+
+    const descToUse = changes.description !== undefined
+      ? (changes.description || '').trim()
+      : (current?.description || '').trim();
+
+    const finalDesc = isClaimed ? `[Claimed] ${descToUse}`.trim() : descToUse;
+
+    const updates = {
+      updated_at: new Date().toISOString(),
+      description: finalDesc,
+    };
     if (changes.amountInCents !== undefined) updates.amount_in_cents = changes.amountInCents;
     if (changes.categoryId !== undefined) updates.category_id = changes.categoryId;
-    if (changes.description !== undefined) updates.description = changes.description;
     if (changes.paymentMethod !== undefined) updates.payment_method = changes.paymentMethod;
     if (changes.expenseDate !== undefined) updates.expense_date = changes.expenseDate;
 
@@ -110,11 +138,23 @@ export function useExpenses() {
     setExpenses(prev =>
       prev.map(e =>
         e.id === id
-          ? { ...e, ...changes, updatedAt: updates.updated_at }
+          ? {
+              ...e,
+              ...changes,
+              description: descToUse,
+              isClaimed,
+              updatedAt: updates.updated_at,
+            }
           : e
       )
     );
-  }, []);
+  }, [expenses]);
+
+  const toggleClaimed = useCallback(async (id) => {
+    const target = expenses.find(e => e.id === id);
+    if (!target) return;
+    await updateExpense(id, { isClaimed: !target.isClaimed });
+  }, [expenses, updateExpense]);
 
   const deleteExpense = useCallback(async (id) => {
     const { error } = await supabase
@@ -140,5 +180,5 @@ export function useExpenses() {
     setExpenses([]);
   }, []);
 
-  return { expenses, loading, addExpense, updateExpense, deleteExpense, clearAllExpenses };
+  return { expenses, loading, addExpense, updateExpense, deleteExpense, clearAllExpenses, toggleClaimed };
 }

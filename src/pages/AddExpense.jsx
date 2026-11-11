@@ -27,6 +27,7 @@ export default function AddExpense() {
         description: editData.description,
         paymentMethod: editData.paymentMethod,
         expenseDate: editData.expenseDate,
+        isClaimed: Boolean(editData.isClaimed),
       }
     : repeatData
     ? {
@@ -35,6 +36,7 @@ export default function AddExpense() {
         description: repeatData.description,
         paymentMethod: repeatData.paymentMethod,
         expenseDate: new Date().toISOString().slice(0, 10),
+        isClaimed: false,
       }
     : {};
 

@@ -160,9 +160,10 @@ export function getNextCycle(cycle, cycleStartDay = 25, adjustWeekend = true) {
   return getBillingCycle(nextDate, cycleStartDay, adjustWeekend);
 }
 
-/** Sum amountInCents for a cycle range */
+/** Sum amountInCents for a cycle range (excluding claimed/reimbursed expenses) */
 export function getCycleTotal(expenses, startDate, endDate) {
   return filterByDateRange(expenses, startDate, endDate)
+    .filter(e => !e.isClaimed)
     .reduce((sum, e) => sum + e.amountInCents, 0);
 }
 
@@ -224,15 +225,17 @@ export function getEstimatedCycleSpending(averageDailySpendingCents, cycle, tota
 
 // ─── Core calculations ──────────────────────────────────────────────────────
 
-/** Sum amountInCents for a set of expenses */
+/** Sum amountInCents for a set of expenses (excluding claimed) */
 export function getMonthlyTotal(expenses, yearMonth) {
   return filterByMonth(expenses, yearMonth)
+    .filter(e => !e.isClaimed)
     .reduce((sum, e) => sum + e.amountInCents, 0);
 }
 
-/** Sum amountInCents for a specific date */
+/** Sum amountInCents for a specific date (excluding claimed) */
 export function getDailyTotal(expenses, dateStr) {
   return filterByDate(expenses, dateStr)
+    .filter(e => !e.isClaimed)
     .reduce((sum, e) => sum + e.amountInCents, 0);
 }
 
@@ -300,15 +303,23 @@ export function getSpendingPaceStatus(actualUsage, expectedUsage) {
   return 'near';
 }
 
-/** Group by categoryId and sum amountInCents → [{categoryId, total}] */
+/** Group by categoryId and sum amountInCents (excluding claimed) → [{categoryId, total}] */
 export function getCategoryTotals(expenses) {
   const map = {};
   for (const e of expenses) {
+    if (e.isClaimed) continue;
     map[e.categoryId] = (map[e.categoryId] || 0) + e.amountInCents;
   }
   return Object.entries(map)
     .map(([categoryId, total]) => ({ categoryId, total }))
     .sort((a, b) => b.total - a.total);
+}
+
+/** Total claimed amount in cents within an expense list */
+export function getClaimedTotal(expenses) {
+  return expenses
+    .filter(e => e.isClaimed)
+    .reduce((sum, e) => sum + e.amountInCents, 0);
 }
 
 /** Attach percentage to each category total entry */

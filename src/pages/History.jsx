@@ -32,7 +32,7 @@ function getNextYearMonth(ym) {
 
 export default function History() {
   const navigate = useNavigate();
-  const { expenses, deleteExpense } = useExpenses();
+  const { expenses, deleteExpense, toggleClaimed } = useExpenses();
   const { categories } = useCategories();
   const { settings } = useSettings();
   const { toast, showToast } = useToast();
@@ -88,7 +88,8 @@ export default function History() {
         const catName = catMap[e.categoryId]?.name?.toLowerCase() || '';
         const catMatch = catName.includes(q);
         const amountMatch = (e.amountInCents / 100).toFixed(2).includes(q) || String(e.amountInCents / 100).includes(q);
-        return descMatch || catMatch || amountMatch;
+        const claimedMatch = (q === 'claimed' || q === 'claim') && e.isClaimed;
+        return descMatch || catMatch || amountMatch || claimedMatch;
       });
     }
     return list;
@@ -192,6 +193,13 @@ export default function History() {
     setDeleteTarget(null);
     setSelectedExpense(null);
     showToast('Expense deleted');
+  };
+
+  const handleToggleClaimed = async (expense) => {
+    await toggleClaimed(expense.id);
+    const updatedState = !expense.isClaimed;
+    setSelectedExpense(prev => prev ? { ...prev, isClaimed: updatedState } : null);
+    showToast(updatedState ? 'Marked as claimed ✓' : 'Marked as personal expense');
   };
 
   const handleRepeat = (expense) => {
@@ -596,7 +604,37 @@ export default function History() {
                   <span className="font-semibold text-[#0F1424]">{selectedExpense.description}</span>
                 </div>
               )}
+              <div className="flex justify-between items-center text-xs pt-1 border-t border-[#F1F5F9]">
+                <span className="font-bold text-[#64748B] uppercase tracking-wider">Claim Status</span>
+                <span className={`px-2 py-0.5 rounded-full font-bold text-[11px] ${
+                  selectedExpense.isClaimed
+                    ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+                    : 'bg-[#F1F5F9] text-[#64748B]'
+                }`}>
+                  {selectedExpense.isClaimed ? 'Claimed (Excluded from total)' : 'Personal Expense'}
+                </span>
+              </div>
             </div>
+
+            {/* Quick Claim Toggle */}
+            <button
+              type="button"
+              onClick={() => handleToggleClaimed(selectedExpense)}
+              className={`w-full py-2.5 px-4 rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 ring-1 shadow-2xs active:scale-98 ${
+                selectedExpense.isClaimed
+                  ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100'
+                  : 'bg-indigo-50 text-indigo-900 ring-indigo-200 hover:bg-indigo-100'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[17px]">
+                {selectedExpense.isClaimed ? 'check_circle' : 'paid'}
+              </span>
+              <span>
+                {selectedExpense.isClaimed
+                  ? 'Claimed · Tap to restore as personal spend'
+                  : 'Mark as Claimed (Paid for others, got money back)'}
+              </span>
+            </button>
 
             {/* Actions */}
             <div className="flex gap-2.5 mt-2">

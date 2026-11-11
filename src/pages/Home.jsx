@@ -25,11 +25,11 @@ import ExpenseListItem from '../components/expense/ExpenseListItem';
 
 function Home() {
   const navigate = useNavigate();
-  const { expenses, addExpense } = useExpenses();
+  const { expenses, addExpense, loading: expensesLoading } = useExpenses();
   const { budget } = useBudget();
   const { settings } = useSettings();
   const { categories } = useCategories();
-  const { recurringExpenses, processDueRecurring } = useRecurringExpenses();
+  const { recurringExpenses, processDueRecurring, loading: recurringLoading } = useRecurringExpenses();
 
   const [today, setToday] = useState(() => new Date());
 
@@ -58,14 +58,17 @@ function Home() {
     [expenses, currentCycle]
   );
 
-  const processedCycleRef = useRef('');
+  const isProcessingRecurringRef = useRef(false);
   useEffect(() => {
-    // Process due recurring expenses once per cycle start to prevent infinite loops
-    if (currentCycle?.startDate && processedCycleRef.current !== currentCycle.startDate) {
-      processedCycleRef.current = currentCycle.startDate;
-      processDueRecurring(addExpense, currentCycle, expenses);
+    // Process due recurring expenses once both datasets are loaded
+    if (!recurringLoading && !expensesLoading && currentCycle?.startDate && recurringExpenses.length > 0) {
+      if (isProcessingRecurringRef.current) return;
+      isProcessingRecurringRef.current = true;
+      processDueRecurring(addExpense, currentCycle, expenses).finally(() => {
+        isProcessingRecurringRef.current = false;
+      });
     }
-  }, [currentCycle?.startDate, processDueRecurring, addExpense]);
+  }, [recurringLoading, expensesLoading, currentCycle?.startDate, recurringExpenses, expenses, processDueRecurring, addExpense]);
 
   // Daily check-in reminder logic
   const [showCheckIn, setShowCheckIn] = useState(false);
