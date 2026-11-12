@@ -124,7 +124,7 @@ function Home() {
   }, [cycleExpenses, categories]);
 
   const cycleTotal = useMemo(() =>
-    cycleExpenses.reduce((sum, e) => sum + e.amountInCents, 0),
+    cycleExpenses.filter(e => !e.isClaimed).reduce((sum, e) => sum + e.amountInCents, 0),
     [cycleExpenses]
   );
 
@@ -159,7 +159,7 @@ function Home() {
   }, [recurringExpenses, cycleExpenses]);
 
   const prevTotal = useMemo(() =>
-    prevCycleExpenses.reduce((sum, e) => sum + e.amountInCents, 0),
+    prevCycleExpenses.filter(e => !e.isClaimed).reduce((sum, e) => sum + e.amountInCents, 0),
     [prevCycleExpenses]
   );
 
@@ -558,7 +558,7 @@ function Home() {
               .filter(c => c.isActive && c.budgetInCents)
               .map(c => {
                 const spent = cycleExpenses
-                  .filter(e => e.categoryId === c.id)
+                  .filter(e => e.categoryId === c.id && !e.isClaimed)
                   .reduce((s, e) => s + e.amountInCents, 0);
                 const pct = spent / c.budgetInCents;
                 return { cat: c, spent, pct };

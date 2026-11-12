@@ -128,16 +128,16 @@ export default function Insights() {
 
   const fixedTotalThisPeriod = useMemo(() => {
     const excludedIds = new Set(categories.filter(c => c.excludeFromAvg).map(c => c.id));
-    return periodExpenses.filter(e => excludedIds.has(e.categoryId)).reduce((sum, e) => sum + e.amountInCents, 0);
+    return periodExpenses.filter(e => excludedIds.has(e.categoryId) && !e.isClaimed).reduce((sum, e) => sum + e.amountInCents, 0);
   }, [periodExpenses, categories]);
 
   const periodTotal = useMemo(() =>
-    periodExpenses.reduce((sum, e) => sum + e.amountInCents, 0),
+    periodExpenses.filter(e => !e.isClaimed).reduce((sum, e) => sum + e.amountInCents, 0),
     [periodExpenses]
   );
 
   const prevPeriodTotal = useMemo(() =>
-    prevPeriodExpenses.reduce((sum, e) => sum + e.amountInCents, 0),
+    prevPeriodExpenses.filter(e => !e.isClaimed).reduce((sum, e) => sum + e.amountInCents, 0),
     [prevPeriodExpenses]
   );
 

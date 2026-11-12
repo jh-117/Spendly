@@ -107,7 +107,7 @@ export default function History() {
       .map(([date, items]) => ({
         date,
         items: items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-        total: items.reduce((s, e) => s + e.amountInCents, 0),
+        total: items.filter(e => !e.isClaimed).reduce((s, e) => s + e.amountInCents, 0),
       }));
   }, [filtered]);
 
@@ -210,7 +210,7 @@ export default function History() {
     navigate('/add', { state: { edit: expense } });
   };
 
-  const totalSpentInView = viewExpenses.reduce((s, e) => s + e.amountInCents, 0);
+  const totalSpentInView = viewExpenses.filter(e => !e.isClaimed).reduce((s, e) => s + e.amountInCents, 0);
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen pb-36 text-[#0F1424] antialiased">
